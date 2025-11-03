@@ -24,7 +24,6 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localho
 # Global AI model variable
 model: Optional[SentenceTransformer] = None
 
-
 # ==================== DATABASE MODELS ====================
 
 class ResponseEntry(SQLModel, table=True):
@@ -73,6 +72,7 @@ class NewResponseInput(BaseModel):
 
 class ResponseOutput(BaseModel):
     """Output model for a response."""
+    # id: int
     answer: str
     evidence: Optional[str]
     canonical_question: str
@@ -237,6 +237,7 @@ async def process_question(
             return LinkedResponse(
                 status="linked",
                 data=ResponseOutput(
+                    # id=response_entry.id,
                     answer=response_entry.answer,
                     evidence=response_entry.evidence,
                     canonical_question=response_entry.canonical_question
@@ -280,6 +281,7 @@ async def process_question(
             suggestions.append(
                 Suggestion(
                     response=ResponseOutput(
+                        # id=response_entry.id,
                         answer=response_entry.answer,
                         evidence=response_entry.evidence,
                         canonical_question=response_entry.canonical_question

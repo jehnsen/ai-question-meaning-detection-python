@@ -8,6 +8,8 @@ Your Effortless-Respond API is now running at:
 - **Interactive Docs**: http://localhost:8001/docs
 - **Alternative Docs**: http://localhost:8001/redoc
 
+DATABASE_URL=postgresql://postgres:postgres8080@localhost:5432/effortless_respond
+
 ## Test the API
 
 ### Option 1: Use the Interactive Docs (Recommended)
