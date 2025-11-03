@@ -1,0 +1,140 @@
+{
+  "test_scenarios": [
+    {
+      "scenario": "ISO 27001 Compliance Questions",
+      "responses": [
+        {
+          "question": "What are the main requirements of ISO 27001?",
+          "answer": "ISO 27001 requires organizations to establish, implement, maintain and continually improve an Information Security Management System (ISMS). Key requirements include: 1) Leadership commitment and policy framework, 2) Risk assessment and treatment, 3) Implementation of 114 security controls across 14 domains, 4) Documented information and procedures, 5) Internal audits and management reviews, 6) Continual improvement processes.",
+          "evidence": "ISO/IEC 27001:2013 Clauses 4-10"
+        },
+        {
+          "question": "What is the difference between ISO 27001 and ISO 27002?",
+          "answer": "ISO 27001 is the certification standard that specifies requirements for establishing, implementing, and maintaining an ISMS. It's the framework organizations get certified against. ISO 27002, on the other hand, is a code of practice providing guidelines and best practices for implementing the security controls referenced in ISO 27001 Annex A. Think of 27001 as 'what to do' and 27002 as 'how to do it'.",
+          "evidence": "ISO/IEC 27001:2013 and ISO/IEC 27002:2013"
+        },
+        {
+          "question": "How long does ISO 27001 certification last?",
+          "answer": "ISO 27001 certification is valid for 3 years from the date of issue. During this period, organizations must undergo surveillance audits (typically annually or semi-annually) to maintain the certification. After 3 years, a recertification audit is required to renew the certificate for another 3-year cycle.",
+          "evidence": "ISO/IEC 17021-1:2015"
+        }
+      ]
+    },
+    {
+      "scenario": "GDPR Compliance Questions",
+      "responses": [
+        {
+          "question": "What are the key principles of GDPR?",
+          "answer": "GDPR is built on seven key principles: 1) Lawfulness, fairness and transparency, 2) Purpose limitation - data collected for specified purposes only, 3) Data minimization - only collect what's necessary, 4) Accuracy - keep data up to date, 5) Storage limitation - don't keep data longer than needed, 6) Integrity and confidentiality - ensure appropriate security, 7) Accountability - demonstrate compliance with all principles.",
+          "evidence": "GDPR Article 5"
+        },
+        {
+          "question": "What is the maximum fine for GDPR violations?",
+          "answer": "GDPR violations can result in administrative fines up to €20 million or 4% of annual global turnover (whichever is higher) for the most serious infringements such as violating core processing principles or data subject rights. Lesser violations may incur fines up to €10 million or 2% of annual global turnover. The specific amount depends on factors like the nature, gravity, and duration of the infringement.",
+          "evidence": "GDPR Article 83"
+        },
+        {
+          "question": "What is a Data Protection Impact Assessment (DPIA)?",
+          "answer": "A DPIA is a systematic process to identify and minimize data protection risks in projects or systems that are likely to result in high risk to individuals' rights and freedoms. It's mandatory when processing is likely to result in high risk, such as: systematic monitoring, large-scale processing of special categories of data, or use of new technologies. The DPIA must describe the processing, assess necessity and proportionality, identify risks, and outline mitigation measures.",
+          "evidence": "GDPR Article 35"
+        }
+      ]
+    },
+    {
+      "scenario": "SOC 2 Compliance Questions",
+      "responses": [
+        {
+          "question": "What is SOC 2 Type 2 certification?",
+          "answer": "SOC 2 Type 2 is an audit report that evaluates an organization's information systems relevant to security, availability, processing integrity, confidentiality, and privacy over a period of time (typically 6-12 months). Unlike Type 1 which is a point-in-time assessment, Type 2 provides evidence that controls are not only properly designed but also operating effectively over an extended period. It's crucial for SaaS companies and cloud service providers.",
+          "evidence": "AICPA SOC 2 Framework"
+        },
+        {
+          "question": "What are the five Trust Service Criteria in SOC 2?",
+          "answer": "The five Trust Service Criteria are: 1) Security - protection against unauthorized access, 2) Availability - system is available for operation and use as committed, 3) Processing Integrity - system processing is complete, valid, accurate, timely and authorized, 4) Confidentiality - confidential information is protected as committed, 5) Privacy - personal information is collected, used, retained, disclosed and disposed in conformity with commitments. Security is mandatory; the other four are optional based on business needs.",
+          "evidence": "AICPA Trust Services Criteria"
+        }
+      ]
+    },
+    {
+      "scenario": "PCI DSS Questions",
+      "responses": [
+        {
+          "question": "What is PCI DSS and who needs to comply?",
+          "answer": "PCI DSS (Payment Card Industry Data Security Standard) is a set of security standards designed to ensure all companies that accept, process, store or transmit credit card information maintain a secure environment. Any organization that handles branded credit cards from major card schemes (Visa, Mastercard, American Express, Discover, JCB) must comply, regardless of size or transaction volume. Compliance level (1-4) is determined by annual transaction volume.",
+          "evidence": "PCI DSS v4.0"
+        },
+        {
+          "question": "What are the 12 requirements of PCI DSS?",
+          "answer": "PCI DSS has 12 core requirements organized into 6 goals: Build and Maintain Secure Network (1. Firewalls, 2. No default passwords), Protect Cardholder Data (3. Protect stored data, 4. Encrypt transmission), Maintain Vulnerability Management (5. Anti-virus, 6. Secure systems), Implement Strong Access Control (7. Need-to-know access, 8. Unique IDs, 9. Physical access restrictions), Regularly Monitor and Test (10. Track access, 11. Test systems), Maintain Information Security Policy (12. Security policy).",
+          "evidence": "PCI DSS Requirements and Security Assessment Procedures v4.0"
+        }
+      ]
+    },
+    {
+      "scenario": "Cybersecurity General Questions",
+      "responses": [
+        {
+          "question": "What is the difference between encryption at rest and encryption in transit?",
+          "answer": "Encryption at rest protects data stored on disks, databases, or backup systems from unauthorized access if the physical storage is compromised. Examples include full-disk encryption, database encryption, and encrypted backups. Encryption in transit protects data while it's moving between systems over networks, preventing interception during transmission. This includes TLS/SSL for web traffic, VPNs, and encrypted email. Both are essential for comprehensive data protection - at rest protects against storage breaches, in transit protects against network eavesdropping.",
+          "evidence": "NIST SP 800-111 and NIST SP 800-52"
+        },
+        {
+          "question": "What is multi-factor authentication and why is it important?",
+          "answer": "Multi-factor authentication (MFA) requires users to provide two or more verification factors to gain access to a resource. The factors fall into three categories: something you know (password), something you have (phone, token, smart card), and something you are (biometrics). MFA is critical because even if one factor is compromised (e.g., password stolen), unauthorized access is prevented. Studies show MFA blocks over 99.9% of account compromise attacks. It's now mandatory in most compliance frameworks including ISO 27001, PCI DSS, and NIST guidelines.",
+          "evidence": "NIST SP 800-63B Digital Identity Guidelines"
+        },
+        {
+          "question": "What is the principle of least privilege?",
+          "answer": "The Principle of Least Privilege (PoLP) states that users, programs, and processes should have only the minimum levels of access necessary to perform their job functions. This means: 1) Users get only the permissions they need, 2) Elevated privileges are temporary and monitored, 3) Default deny with explicit allow rules, 4) Regular access reviews and revocations. PoLP limits the blast radius of security breaches, reduces insider threat risk, and is a fundamental requirement in ISO 27001, SOC 2, and zero-trust architectures.",
+          "evidence": "NIST SP 800-53 Access Control AC-6"
+        }
+      ]
+    }
+  ],
+  "similar_questions_to_test": [
+    {
+      "original": "What are the main requirements of ISO 27001?",
+      "variations": [
+        "What does ISO 27001 require from organizations?",
+        "Tell me about ISO 27001 requirements",
+        "What are ISO 27001's key requirements?",
+        "What do I need to implement for ISO 27001?"
+      ]
+    },
+    {
+      "original": "What is the difference between ISO 27001 and ISO 27002?",
+      "variations": [
+        "How are ISO 27001 and 27002 different?",
+        "What distinguishes ISO 27001 from ISO 27002?",
+        "ISO 27001 vs ISO 27002 - what's the difference?"
+      ]
+    },
+    {
+      "original": "What are the key principles of GDPR?",
+      "variations": [
+        "What principles does GDPR follow?",
+        "Tell me about GDPR's core principles",
+        "What are the fundamental principles of GDPR?",
+        "GDPR principles - what are they?"
+      ]
+    },
+    {
+      "original": "What is the maximum fine for GDPR violations?",
+      "variations": [
+        "How much can you be fined for GDPR violations?",
+        "What are GDPR penalty amounts?",
+        "Maximum GDPR fine amount?",
+        "What's the highest GDPR penalty?"
+      ]
+    },
+    {
+      "original": "What is multi-factor authentication and why is it important?",
+      "variations": [
+        "Why is MFA important?",
+        "What is two-factor authentication?",
+        "Explain multi-factor authentication",
+        "Why should we use MFA?"
+      ]
+    }
+  ]
+}
