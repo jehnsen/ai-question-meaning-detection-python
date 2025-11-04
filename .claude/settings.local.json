@@ -7,7 +7,11 @@
       "Bash(taskkill:*)",
       "Bash(nul)",
       "Bash(timeout /t 3 /nobreak)",
-      "Bash(python -m json.tool:*)"
+      "Bash(python -m json.tool:*)",
+      "Bash(=1.0.0)",
+      "Bash(timeout /t 2 /nobreak)",
+      "Bash(./venv/Scripts/pip list:*)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": []
