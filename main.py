@@ -5,12 +5,14 @@ Batch processing endpoint with 4-step logic and OpenAI embeddings.
 """
 
 from contextlib import asynccontextmanager
-from typing import Optional
+from typing import Optional, List, Dict, Any
 import time
+from datetime import datetime, timedelta, timezone
 
 from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy import create_engine, text
-from sqlmodel import SQLModel, Field, select, Session
+from sqlalchemy import create_engine, text, func
+from sqlmodel import SQLModel, Field, select, Session, Column
+from sqlalchemy import DateTime
 from pgvector.sqlalchemy import Vector
 from pydantic import BaseModel
 import os
@@ -59,6 +61,68 @@ class QuestionLink(SQLModel, table=True):
     linked_response_id: int = Field(foreign_key="responseentry.id")  # ID of the linked answer
 
 
+class AnalyticsEvent(SQLModel, table=True):
+    """
+    Tracks all questionnaire processing events for analytics.
+    """
+    __tablename__ = "analyticsevent"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    timestamp: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True), nullable=False, index=True)
+    )
+
+    # Event details
+    event_type: str = Field(index=True)  # "questionnaire_processed", "question_matched", etc.
+    questionnaire_id: Optional[str] = Field(default=None, index=True)  # Batch identifier
+    question_id: Optional[str] = Field(default=None, index=True)  # Individual question ID
+
+    # Result details
+    status: Optional[str] = Field(default=None, index=True)  # LINKED, CONFIRMATION_REQUIRED, NO_MATCH
+    match_method: Optional[str] = Field(default=None)  # "saved_link", "exact_id", "ai_high_conf", "ai_medium_conf"
+    similarity_score: Optional[float] = Field(default=None)  # AI similarity score (0-1)
+
+    # Performance metrics
+    processing_time_ms: Optional[int] = Field(default=None)  # Processing time in milliseconds
+
+    # Additional context
+    canonical_question_id: Optional[str] = Field(default=None)  # Matched canonical question
+    vendor_name: Optional[str] = Field(default=None, index=True)  # Vendor being assessed
+    industry: Optional[str] = Field(default=None, index=True)  # Vendor industry
+
+
+class UsageMetrics(SQLModel, table=True):
+    """
+    Aggregated daily usage metrics for dashboard.
+    """
+    __tablename__ = "usagemetrics"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    date: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False, index=True, unique=True)
+    )
+
+    # Volume metrics
+    total_questionnaires: int = Field(default=0)
+    total_questions: int = Field(default=0)
+
+    # Status breakdown
+    linked_count: int = Field(default=0)
+    confirmation_required_count: int = Field(default=0)
+    no_match_count: int = Field(default=0)
+
+    # Match method breakdown
+    saved_link_count: int = Field(default=0)
+    exact_id_count: int = Field(default=0)
+    ai_high_conf_count: int = Field(default=0)
+    ai_medium_conf_count: int = Field(default=0)
+
+    # Performance metrics
+    avg_processing_time_ms: Optional[float] = Field(default=None)
+    total_processing_time_ms: int = Field(default=0)
+
+
 # ==================== PYDANTIC MODELS ====================
 
 class Question(BaseModel):
@@ -89,6 +153,92 @@ class QuestionResult(BaseModel):
 class QuestionnaireOutput(BaseModel):
     """Output model for batch processing questionnaire."""
     results: list[QuestionResult]
+
+
+# ==================== ANALYTICS PYDANTIC MODELS ====================
+
+class DashboardOverview(BaseModel):
+    """Overview statistics for the analytics dashboard."""
+    # Today's metrics
+    today_questionnaires: int
+    today_questions: int
+    today_linked: int
+    today_confirmation_required: int
+    today_no_match: int
+
+    # All-time metrics
+    total_questionnaires: int
+    total_questions: int
+    total_response_entries: int
+    total_question_links: int
+
+    # Match effectiveness
+    linked_percentage: float
+    confirmation_percentage: float
+    no_match_percentage: float
+
+    # Performance
+    avg_processing_time_ms: Optional[float]
+
+
+class MatchMethodBreakdown(BaseModel):
+    """Breakdown of how questions are being matched."""
+    saved_link: int
+    exact_id: int
+    ai_high_confidence: int
+    ai_medium_confidence: int
+    no_match: int
+
+    # Percentages
+    saved_link_pct: float
+    exact_id_pct: float
+    ai_high_confidence_pct: float
+    ai_medium_confidence_pct: float
+    no_match_pct: float
+
+
+class TimeSeriesDataPoint(BaseModel):
+    """Single data point for time series charts."""
+    date: str  # ISO format date
+    value: int
+
+
+class TimeSeriesData(BaseModel):
+    """Time series data for trend analysis."""
+    dates: List[str]
+    questionnaires: List[int]
+    questions: List[int]
+    linked: List[int]
+    confirmation_required: List[int]
+    no_match: List[int]
+
+
+class TopCanonicalQuestion(BaseModel):
+    """Most frequently matched canonical question."""
+    question_id: str
+    question_text: str
+    match_count: int
+    avg_similarity_score: Optional[float]
+
+
+class VendorInsight(BaseModel):
+    """Analytics grouped by vendor."""
+    vendor_name: str
+    questionnaire_count: int
+    question_count: int
+    linked_count: int
+    confirmation_required_count: int
+    no_match_count: int
+    avg_processing_time_ms: Optional[float]
+
+
+class IndustryInsight(BaseModel):
+    """Analytics grouped by industry."""
+    industry: str
+    vendor_count: int
+    questionnaire_count: int
+    question_count: int
+    avg_linked_percentage: float
 
 
 # ==================== DATABASE CONNECTION ====================
@@ -225,6 +375,53 @@ async def get_batch_embeddings(texts: list[str], max_retries: int = 3) -> list[l
                 )
 
     return all_embeddings
+
+
+# ==================== ANALYTICS HELPERS ====================
+
+def log_analytics_event(
+    session: Session,
+    event_type: str,
+    questionnaire_id: Optional[str] = None,
+    question_id: Optional[str] = None,
+    status: Optional[str] = None,
+    match_method: Optional[str] = None,
+    similarity_score: Optional[float] = None,
+    processing_time_ms: Optional[int] = None,
+    canonical_question_id: Optional[str] = None,
+    vendor_name: Optional[str] = None,
+    industry: Optional[str] = None
+):
+    """
+    Log an analytics event to the database.
+
+    Args:
+        session: Database session
+        event_type: Type of event (e.g., "question_matched", "questionnaire_processed")
+        questionnaire_id: Batch/questionnaire identifier
+        question_id: Individual question ID
+        status: Result status (LINKED, CONFIRMATION_REQUIRED, NO_MATCH)
+        match_method: How the match was found (saved_link, exact_id, ai_high_conf, ai_medium_conf)
+        similarity_score: AI similarity score (0-1)
+        processing_time_ms: Processing time in milliseconds
+        canonical_question_id: Matched canonical question ID
+        vendor_name: Vendor being assessed
+        industry: Vendor industry
+    """
+    event = AnalyticsEvent(
+        event_type=event_type,
+        questionnaire_id=questionnaire_id,
+        question_id=question_id,
+        status=status,
+        match_method=match_method,
+        similarity_score=similarity_score,
+        processing_time_ms=processing_time_ms,
+        canonical_question_id=canonical_question_id,
+        vendor_name=vendor_name,
+        industry=industry
+    )
+    session.add(event)
+    session.commit()
 
 
 # ==================== APPLICATION LIFESPAN ====================
@@ -649,6 +846,380 @@ async def delete_link(link_id: int, session: Session = Depends(get_session)):
     session.commit()
 
     return {"message": f"Link {link_id} deleted successfully"}
+
+
+# ==================== ANALYTICS ENDPOINTS ====================
+
+@app.get("/analytics/dashboard", response_model=DashboardOverview)
+async def get_dashboard_overview(session: Session = Depends(get_session)):
+    """
+    Get comprehensive dashboard overview statistics.
+
+    Returns high-level metrics including:
+    - Today's activity (questionnaires, questions, status breakdown)
+    - All-time totals
+    - Match effectiveness percentages
+    - Average performance metrics
+
+    Perfect for a CEO dashboard or main analytics page.
+    """
+    # Get today's date range
+    today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+
+    # Today's metrics
+    today_events = session.exec(
+        select(AnalyticsEvent).where(AnalyticsEvent.timestamp >= today_start)
+    ).all()
+
+    today_questionnaires = len(set(e.questionnaire_id for e in today_events if e.questionnaire_id))
+    today_questions = len([e for e in today_events if e.event_type == "question_matched"])
+    today_linked = len([e for e in today_events if e.status == "LINKED"])
+    today_confirmation = len([e for e in today_events if e.status == "CONFIRMATION_REQUIRED"])
+    today_no_match = len([e for e in today_events if e.status == "NO_MATCH"])
+
+    # All-time metrics
+    all_events = session.exec(select(AnalyticsEvent)).all()
+    total_questionnaires = len(set(e.questionnaire_id for e in all_events if e.questionnaire_id))
+    total_questions = len([e for e in all_events if e.event_type == "question_matched"])
+
+    # Count database entries
+    total_response_entries = len(session.exec(select(ResponseEntry)).all())
+    total_question_links = len(session.exec(select(QuestionLink)).all())
+
+    # Calculate percentages
+    matched_events = [e for e in all_events if e.status in ["LINKED", "CONFIRMATION_REQUIRED", "NO_MATCH"]]
+    total_matched = len(matched_events)
+
+    if total_matched > 0:
+        linked_pct = (len([e for e in matched_events if e.status == "LINKED"]) / total_matched) * 100
+        confirmation_pct = (len([e for e in matched_events if e.status == "CONFIRMATION_REQUIRED"]) / total_matched) * 100
+        no_match_pct = (len([e for e in matched_events if e.status == "NO_MATCH"]) / total_matched) * 100
+    else:
+        linked_pct = confirmation_pct = no_match_pct = 0.0
+
+    # Average processing time
+    times = [e.processing_time_ms for e in all_events if e.processing_time_ms is not None]
+    avg_time = sum(times) / len(times) if times else None
+
+    return DashboardOverview(
+        today_questionnaires=today_questionnaires,
+        today_questions=today_questions,
+        today_linked=today_linked,
+        today_confirmation_required=today_confirmation,
+        today_no_match=today_no_match,
+        total_questionnaires=total_questionnaires,
+        total_questions=total_questions,
+        total_response_entries=total_response_entries,
+        total_question_links=total_question_links,
+        linked_percentage=round(linked_pct, 2),
+        confirmation_percentage=round(confirmation_pct, 2),
+        no_match_percentage=round(no_match_pct, 2),
+        avg_processing_time_ms=round(avg_time, 2) if avg_time else None
+    )
+
+
+@app.get("/analytics/match-methods", response_model=MatchMethodBreakdown)
+async def get_match_method_breakdown(session: Session = Depends(get_session)):
+    """
+    Get breakdown of how questions are being matched.
+
+    Shows distribution across:
+    - Saved links (previously linked questions)
+    - Exact ID matches (canonical question IDs)
+    - AI high confidence matches (>92% similarity, auto-linked)
+    - AI medium confidence matches (80-92% similarity, needs confirmation)
+    - No matches (<80% similarity)
+
+    Useful for understanding system efficiency and AI performance.
+    """
+    events = session.exec(
+        select(AnalyticsEvent).where(AnalyticsEvent.event_type == "question_matched")
+    ).all()
+
+    saved_link = len([e for e in events if e.match_method == "saved_link"])
+    exact_id = len([e for e in events if e.match_method == "exact_id"])
+    ai_high_conf = len([e for e in events if e.match_method == "ai_high_conf"])
+    ai_medium_conf = len([e for e in events if e.match_method == "ai_medium_conf"])
+    no_match = len([e for e in events if e.status == "NO_MATCH"])
+
+    total = len(events) if events else 1  # Avoid division by zero
+
+    return MatchMethodBreakdown(
+        saved_link=saved_link,
+        exact_id=exact_id,
+        ai_high_confidence=ai_high_conf,
+        ai_medium_confidence=ai_medium_conf,
+        no_match=no_match,
+        saved_link_pct=round((saved_link / total) * 100, 2),
+        exact_id_pct=round((exact_id / total) * 100, 2),
+        ai_high_confidence_pct=round((ai_high_conf / total) * 100, 2),
+        ai_medium_confidence_pct=round((ai_medium_conf / total) * 100, 2),
+        no_match_pct=round((no_match / total) * 100, 2)
+    )
+
+
+@app.get("/analytics/time-series")
+async def get_time_series_data(
+    days: int = 30,
+    session: Session = Depends(get_session)
+) -> TimeSeriesData:
+    """
+    Get time-series data for trend analysis.
+
+    Args:
+        days: Number of days to include (default: 30)
+
+    Returns:
+        Time-series data with daily counts for:
+        - Questionnaires processed
+        - Questions processed
+        - Questions linked
+        - Questions requiring confirmation
+        - Questions with no match
+
+    Perfect for line charts showing usage trends over time.
+    """
+    # Calculate date range
+    end_date = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    start_date = end_date - timedelta(days=days-1)
+
+    # Get all events in range
+    events = session.exec(
+        select(AnalyticsEvent).where(AnalyticsEvent.timestamp >= start_date)
+    ).all()
+
+    # Initialize data structures
+    dates = []
+    questionnaires = []
+    questions = []
+    linked = []
+    confirmation_required = []
+    no_match = []
+
+    # Process each day
+    for day_offset in range(days):
+        current_date = start_date + timedelta(days=day_offset)
+        next_date = current_date + timedelta(days=1)
+
+        # Filter events for this day
+        day_events = [e for e in events if current_date <= e.timestamp < next_date]
+
+        dates.append(current_date.strftime("%Y-%m-%d"))
+        questionnaires.append(len(set(e.questionnaire_id for e in day_events if e.questionnaire_id)))
+        questions.append(len([e for e in day_events if e.event_type == "question_matched"]))
+        linked.append(len([e for e in day_events if e.status == "LINKED"]))
+        confirmation_required.append(len([e for e in day_events if e.status == "CONFIRMATION_REQUIRED"]))
+        no_match.append(len([e for e in day_events if e.status == "NO_MATCH"]))
+
+    return TimeSeriesData(
+        dates=dates,
+        questionnaires=questionnaires,
+        questions=questions,
+        linked=linked,
+        confirmation_required=confirmation_required,
+        no_match=no_match
+    )
+
+
+@app.get("/analytics/top-questions")
+async def get_top_canonical_questions(
+    limit: int = 10,
+    session: Session = Depends(get_session)
+) -> List[TopCanonicalQuestion]:
+    """
+    Get the most frequently matched canonical questions.
+
+    Args:
+        limit: Number of top questions to return (default: 10)
+
+    Returns:
+        List of top canonical questions with:
+        - Question ID and text
+        - Number of times matched
+        - Average similarity score
+
+    Useful for identifying which canonical answers are most reusable.
+    """
+    events = session.exec(
+        select(AnalyticsEvent)
+        .where(AnalyticsEvent.canonical_question_id.isnot(None))
+        .where(AnalyticsEvent.status.in_(["LINKED", "CONFIRMATION_REQUIRED"]))
+    ).all()
+
+    # Group by canonical question ID
+    question_stats: Dict[str, Dict[str, Any]] = {}
+
+    for event in events:
+        qid = event.canonical_question_id
+        if qid not in question_stats:
+            question_stats[qid] = {
+                "count": 0,
+                "similarity_scores": []
+            }
+
+        question_stats[qid]["count"] += 1
+        if event.similarity_score is not None:
+            question_stats[qid]["similarity_scores"].append(event.similarity_score)
+
+    # Get question text from database
+    results = []
+    for qid, stats in sorted(question_stats.items(), key=lambda x: x[1]["count"], reverse=True)[:limit]:
+        # Find the question text
+        response_entry = session.exec(
+            select(ResponseEntry).where(ResponseEntry.question_id == qid)
+        ).first()
+
+        if response_entry:
+            avg_score = None
+            if stats["similarity_scores"]:
+                avg_score = round(sum(stats["similarity_scores"]) / len(stats["similarity_scores"]), 4)
+
+            results.append(TopCanonicalQuestion(
+                question_id=qid,
+                question_text=response_entry.question_text,
+                match_count=stats["count"],
+                avg_similarity_score=avg_score
+            ))
+
+    return results
+
+
+@app.get("/analytics/vendors")
+async def get_vendor_insights(
+    limit: int = 20,
+    session: Session = Depends(get_session)
+) -> List[VendorInsight]:
+    """
+    Get analytics grouped by vendor.
+
+    Args:
+        limit: Number of vendors to return (default: 20)
+
+    Returns:
+        List of vendor insights with:
+        - Questionnaire and question counts
+        - Status breakdown (linked, confirmation, no match)
+        - Average processing time
+
+    Useful for understanding which vendors have been assessed most
+    and how well their questionnaires are being matched.
+    """
+    events = session.exec(
+        select(AnalyticsEvent).where(AnalyticsEvent.vendor_name.isnot(None))
+    ).all()
+
+    # Group by vendor
+    vendor_stats: Dict[str, Dict[str, Any]] = {}
+
+    for event in events:
+        vendor = event.vendor_name
+        if vendor not in vendor_stats:
+            vendor_stats[vendor] = {
+                "questionnaires": set(),
+                "questions": 0,
+                "linked": 0,
+                "confirmation": 0,
+                "no_match": 0,
+                "processing_times": []
+            }
+
+        if event.questionnaire_id:
+            vendor_stats[vendor]["questionnaires"].add(event.questionnaire_id)
+
+        if event.event_type == "question_matched":
+            vendor_stats[vendor]["questions"] += 1
+
+            if event.status == "LINKED":
+                vendor_stats[vendor]["linked"] += 1
+            elif event.status == "CONFIRMATION_REQUIRED":
+                vendor_stats[vendor]["confirmation"] += 1
+            elif event.status == "NO_MATCH":
+                vendor_stats[vendor]["no_match"] += 1
+
+        if event.processing_time_ms:
+            vendor_stats[vendor]["processing_times"].append(event.processing_time_ms)
+
+    # Convert to response models
+    results = []
+    for vendor, stats in sorted(vendor_stats.items(), key=lambda x: x[1]["questions"], reverse=True)[:limit]:
+        avg_time = None
+        if stats["processing_times"]:
+            avg_time = round(sum(stats["processing_times"]) / len(stats["processing_times"]), 2)
+
+        results.append(VendorInsight(
+            vendor_name=vendor,
+            questionnaire_count=len(stats["questionnaires"]),
+            question_count=stats["questions"],
+            linked_count=stats["linked"],
+            confirmation_required_count=stats["confirmation"],
+            no_match_count=stats["no_match"],
+            avg_processing_time_ms=avg_time
+        ))
+
+    return results
+
+
+@app.get("/analytics/industries")
+async def get_industry_insights(
+    session: Session = Depends(get_session)
+) -> List[IndustryInsight]:
+    """
+    Get analytics grouped by industry.
+
+    Returns:
+        List of industry insights with:
+        - Number of vendors assessed per industry
+        - Questionnaire and question counts
+        - Average linked percentage (match effectiveness)
+
+    Useful for understanding which industries are being assessed
+    and comparing match effectiveness across industries.
+    """
+    events = session.exec(
+        select(AnalyticsEvent).where(AnalyticsEvent.industry.isnot(None))
+    ).all()
+
+    # Group by industry
+    industry_stats: Dict[str, Dict[str, Any]] = {}
+
+    for event in events:
+        industry = event.industry
+        if industry not in industry_stats:
+            industry_stats[industry] = {
+                "vendors": set(),
+                "questionnaires": set(),
+                "questions": 0,
+                "linked": 0
+            }
+
+        if event.vendor_name:
+            industry_stats[industry]["vendors"].add(event.vendor_name)
+
+        if event.questionnaire_id:
+            industry_stats[industry]["questionnaires"].add(event.questionnaire_id)
+
+        if event.event_type == "question_matched":
+            industry_stats[industry]["questions"] += 1
+
+            if event.status == "LINKED":
+                industry_stats[industry]["linked"] += 1
+
+    # Convert to response models
+    results = []
+    for industry, stats in sorted(industry_stats.items(), key=lambda x: x[1]["questions"], reverse=True):
+        linked_pct = 0.0
+        if stats["questions"] > 0:
+            linked_pct = round((stats["linked"] / stats["questions"]) * 100, 2)
+
+        results.append(IndustryInsight(
+            industry=industry,
+            vendor_count=len(stats["vendors"]),
+            questionnaire_count=len(stats["questionnaires"]),
+            question_count=stats["questions"],
+            avg_linked_percentage=linked_pct
+        ))
+
+    return results
 
 
 # ==================== MAIN ====================
