@@ -1,6 +1,24 @@
 """
-Reset database - Clear all data and recreate tables
-Use this when you change the embedding model or dimension
+Reset Database Tool - Effortless-Respond API
+
+This script provides two options for database management:
+
+1. Reset Database (Option 1):
+   - Drops ALL tables (responseentry, questionlink, analyticsevent, usagemetrics)
+   - Recreates all tables with correct schema
+   - Use when: Changing embedding model/dimensions, schema changes, or starting fresh
+
+2. Clear Data Only (Option 2):
+   - Deletes all data but keeps table structure
+   - Safer option that preserves schema
+   - Use when: Testing with fresh data without schema changes
+
+Usage:
+    python reset_database.py 1    # Reset database (auto-confirm)
+    python reset_database.py 2    # Clear data only (auto-confirm)
+    python reset_database.py      # Interactive mode
+
+IMPORTANT: Always backup your data before running this script!
 """
 
 from sqlalchemy import create_engine, text
@@ -9,10 +27,13 @@ import os
 from dotenv import load_dotenv
 import sys
 
-# Load environment variables
-load_dotenv()
+# Load environment variables (override system env vars)
+load_dotenv(override=True)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+# Detect database type
+is_mysql = DATABASE_URL and "mysql" in DATABASE_URL.lower()
 
 def reset_database(auto_confirm=False):
     """Drop all tables and recreate them."""
@@ -23,6 +44,8 @@ def reset_database(auto_confirm=False):
     print("  - All responses")
     print("  - All question links")
     print("  - All embeddings")
+    print("  - All analytics events")
+    print("  - All usage metrics")
 
     if not auto_confirm:
         response = input("\nAre you sure you want to continue? (yes/no): ")
@@ -36,21 +59,33 @@ def reset_database(auto_confirm=False):
     # Import models to register them
     from main import ResponseEntry, QuestionLink
 
+    # Try to import analytics models if they exist
+    try:
+        from main import AnalyticsEvent, UsageMetrics
+        has_analytics = True
+    except ImportError:
+        has_analytics = False
+
     print("Dropping all tables...")
     SQLModel.metadata.drop_all(engine)
 
     print("Creating fresh tables...")
+    # MySQL doesn't need pgvector extension
     SQLModel.metadata.create_all(engine)
 
     print("\n" + "=" * 60)
     print("SUCCESS: Database reset complete!")
     print("=" * 60)
-    print("\nAll tables have been recreated with the correct schema.")
-    print("You can now start fresh with your data.")
+    print("\nTables created:")
+    print("  [OK] responseentry (canonical questions & answers)")
+    print("  [OK] questionlink (saved question links)")
+    if has_analytics:
+        print("  [OK] analyticsevent (analytics tracking)")
+        print("  [OK] usagemetrics (daily aggregations)")
     print("\nNext steps:")
     print("  1. Start the API: python main.py")
-    print("  2. Add new responses via /create-new-response")
-    print("  3. Test with /process-question")
+    print("  2. Add new responses via /create-response")
+    print("  3. Test with /batch-process-questionnaire")
 
 
 def just_clear_data(auto_confirm=False):
@@ -59,6 +94,10 @@ def just_clear_data(auto_confirm=False):
     print("CLEAR DATA TOOL")
     print("=" * 60)
     print("\nThis will delete all data but keep table structure.")
+    print("  - Question links")
+    print("  - Responses")
+    print("  - Analytics events")
+    print("  - Usage metrics")
 
     if not auto_confirm:
         response = input("\nContinue? (yes/no): ")
@@ -69,6 +108,13 @@ def just_clear_data(auto_confirm=False):
     print("\nConnecting to database...")
     engine = create_engine(DATABASE_URL)
 
+    # Try to import analytics models to check if they exist
+    try:
+        from main import AnalyticsEvent, UsageMetrics
+        has_analytics = True
+    except ImportError:
+        has_analytics = False
+
     with engine.connect() as conn:
         print("Deleting all question links...")
         conn.execute(text("DELETE FROM questionlink"))
@@ -76,11 +122,19 @@ def just_clear_data(auto_confirm=False):
         print("Deleting all responses...")
         conn.execute(text("DELETE FROM responseentry"))
 
+        if has_analytics:
+            print("Deleting all analytics events...")
+            conn.execute(text("DELETE FROM analyticsevent"))
+
+            print("Deleting all usage metrics...")
+            conn.execute(text("DELETE FROM usagemetrics"))
+
         conn.commit()
 
     print("\n" + "=" * 60)
     print("SUCCESS: Data cleared!")
     print("=" * 60)
+    print("\nAll data has been deleted. Tables remain intact.")
 
 
 if __name__ == "__main__":

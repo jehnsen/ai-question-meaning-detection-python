@@ -1,0 +1,64 @@
+{
+  "responses": [
+    {
+      "question_id": "CANONICAL-ISO27001",
+      "question_text": "What is ISO 27001 certification?",
+      "answer_text": "ISO 27001 is an international standard for information security management systems (ISMS). It provides a systematic approach to managing sensitive company information, ensuring it remains secure through people, processes, and IT systems.",
+      "evidence": "ISO/IEC 27001:2013"
+    },
+    {
+      "question_id": "CANONICAL-GDPR",
+      "question_text": "What is GDPR compliance?",
+      "answer_text": "GDPR (General Data Protection Regulation) is a comprehensive data protection law that requires organizations to protect EU citizens' personal data and privacy. It includes requirements for consent, data subject rights, breach notification, and data protection by design.",
+      "evidence": "GDPR Articles 5, 25, 32, 33"
+    },
+    {
+      "question_id": "CANONICAL-MFA",
+      "question_text": "What is multi-factor authentication?",
+      "answer_text": "Multi-factor authentication (MFA) is a security process that requires users to provide two or more verification factors to gain access to a resource. This significantly enhances security by combining something you know (password), something you have (token), and/or something you are (biometric).",
+      "evidence": "NIST SP 800-63B"
+    },
+    {
+      "question_id": "CANONICAL-ENCRYPTION",
+      "question_text": "What encryption standards do you use?",
+      "answer_text": "We use industry-standard encryption including AES-256 for data at rest and TLS 1.2+ for data in transit. All encryption keys are managed using hardware security modules (HSMs) and rotated according to security best practices.",
+      "evidence": "NIST SP 800-175B"
+    },
+    {
+      "question_id": "CANONICAL-INCIDENT",
+      "question_text": "What is your incident response plan?",
+      "answer_text": "Our incident response plan follows the NIST framework: Preparation, Detection & Analysis, Containment Eradication & Recovery, and Post-Incident Activity. We have a 24/7 security operations center and maintain documented procedures for all incident types.",
+      "evidence": "NIST SP 800-61"
+    },
+    {
+      "question_id": "CANONICAL-BACKUP",
+      "question_text": "What is your data backup strategy?",
+      "answer_text": "We implement a 3-2-1 backup strategy: 3 copies of data, on 2 different types of media, with 1 copy offsite. Backups are encrypted, tested monthly, and retained according to regulatory requirements. Recovery time objective (RTO) is 4 hours, recovery point objective (RPO) is 1 hour.",
+      "evidence": "Internal Policy BP-001"
+    },
+    {
+      "question_id": "CANONICAL-PENTEST",
+      "question_text": "How often do you conduct penetration testing?",
+      "answer_text": "We conduct comprehensive penetration testing annually by certified third-party security firms. Additionally, we perform quarterly vulnerability scans and have a continuous bug bounty program. All critical findings are remediated within 30 days.",
+      "evidence": "Security Assessment Schedule 2024"
+    },
+    {
+      "question_id": "CANONICAL-SOC2",
+      "question_text": "Are you SOC 2 compliant?",
+      "answer_text": "Yes, we maintain SOC 2 Type II certification, audited annually by an independent CPA firm. Our report covers Security, Availability, and Confidentiality trust service criteria. Current report available upon request under NDA.",
+      "evidence": "SOC 2 Type II Report 2024"
+    },
+    {
+      "question_id": "CANONICAL-ACCESS-CONTROL",
+      "question_text": "How do you manage access control?",
+      "answer_text": "We implement role-based access control (RBAC) with least privilege principle. All access is logged, reviewed quarterly, and requires manager approval. Privileged access requires MFA and is monitored in real-time. Access is immediately revoked upon termination.",
+      "evidence": "Access Control Policy AC-002"
+    },
+    {
+      "question_id": "CANONICAL-DATA-RETENTION",
+      "question_text": "What is your data retention policy?",
+      "answer_text": "We retain customer data for the duration of the contract plus 90 days. After this period, data is securely deleted using NIST 800-88 media sanitization guidelines. Customers can request early deletion. Backup retention follows a 90-day cycle.",
+      "evidence": "Data Retention Policy DR-001"
+    }
+  ]
+}
