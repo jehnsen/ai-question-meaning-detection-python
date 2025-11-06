@@ -73,7 +73,11 @@ cp .env.example .env
 Edit `.env` with your database credentials:
 
 ```
+ENV:
 DATABASE_URL=postgresql://username:password@localhost:5432/effortless_respond
+DATABASE_URL=mysql+pymysql://root:password123@localhost:3306/sbb_db
+# OpenAI API Configuration
+OPENAI_API_KEY=
 ```
 
 ## Running the Application
