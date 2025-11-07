@@ -1,4 +1,5 @@
 {
+  "vendor_id": "VENDOR-001",
   "responses": [
     {
       "question_id": "CANONICAL-ISO27001",

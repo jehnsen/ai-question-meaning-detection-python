@@ -72,26 +72,36 @@ openai_client: Optional[OpenAI] = None
 
 class ResponseEntry(SQLModel, table=True):
     """
-    Stores canonical answers and their vector embeddings.
+    Stores vendor-specific questions, answers, and their vector embeddings.
+    Each vendor has their own repository of Q&A pairs.
     """
     __tablename__ = "responseentry"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    question_id: str = Field(index=True, unique=True, max_length=255)  # Canonical question ID
+    vendor_id: str = Field(index=True, max_length=255)  # Which vendor owns this Q&A
+    question_id: str = Field(index=True, max_length=255)  # Question ID (from external system)
     question_text: str = Field(sa_type=TEXT)  # The text of the question (TEXT for long content)
     answer_text: str = Field(sa_type=TEXT)  # The saved answer (TEXT for long content)
     evidence: Optional[str] = Field(default=None, sa_type=TEXT)  # Associated compliance evidence
     embedding: list[float] = Field(sa_type=VectorType)  # 1024-dim OpenAI vector stored as JSON
 
+    class Config:
+        # Composite unique constraint: one question per vendor
+        table_args = (
+            {"mysql_charset": "utf8mb4"},
+        )
+
 
 class QuestionLink(SQLModel, table=True):
     """
-    Maps new question IDs to existing answers (saved links).
+    Maps new question IDs to vendor's existing answers (saved links).
+    Each vendor has their own question links.
     """
     __tablename__ = "questionlink"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    new_question_id: int = Field(index=True, unique=True)  # ID of the new question
+    vendor_id: str = Field(index=True, max_length=255)  # Which vendor owns this link
+    new_question_id: int = Field(index=True)  # ID of the new question
     linked_response_id: int = Field(foreign_key="responseentry.id")  # ID of the linked answer
 
 
@@ -105,6 +115,7 @@ class Question(BaseModel):
 
 class QuestionnaireInput(BaseModel):
     """Input model for batch processing questionnaire."""
+    vendor_id: str  # Which vendor is processing this questionnaire
     questions: list[Question]
 
 
@@ -138,6 +149,7 @@ class CanonicalResponseInput(BaseModel):
 
 class BatchCreateInput(BaseModel):
     """Input model for batch creating canonical responses."""
+    vendor_id: str  # Which vendor owns these responses
     responses: list[CanonicalResponseInput]
 
 
@@ -334,26 +346,30 @@ async def process_questionnaire(
     session: Session = Depends(get_session)
 ):
     """
-    Batch processing endpoint for questionnaires.
+    Batch processing endpoint for questionnaires - MULTI-TENANT.
 
-    Processes a list of questions and applies 4-step logic to each:
-    1. Check if question ID has a saved link in QuestionLink table
-    2. Check if question ID has an exact match in ResponseEntry table
-    3. Run AI search using embeddings
+    Processes a list of questions for a specific vendor and applies 4-step logic:
+    1. Check if question ID has a saved link in QuestionLink table (for this vendor)
+    2. Check if question ID has an exact match in ResponseEntry table (for this vendor)
+    3. Run AI search using embeddings (against this vendor's responses only)
     4. Apply 3-tier confidence logic (>0.92, 0.80-0.92, <0.80)
 
     Args:
-        questionnaire: Input containing list of questions
+        questionnaire: Input containing vendor_id and list of questions
         session: Database session
 
     Returns:
         QuestionnaireOutput with results for each question
     """
     results = []
+    vendor_id = questionnaire.vendor_id
 
     for question in questionnaire.questions:
-        # Step 1: Check for saved link in QuestionLink table
-        link_query = select(QuestionLink).where(QuestionLink.new_question_id == question.id)
+        # Step 1: Check for saved link in QuestionLink table (vendor-specific)
+        link_query = select(QuestionLink).where(
+            QuestionLink.vendor_id == vendor_id,
+            QuestionLink.new_question_id == question.id
+        )
         existing_link = session.exec(link_query).first()
 
         if existing_link:
@@ -372,8 +388,11 @@ async def process_questionnaire(
                 ))
                 continue  # Move to next question
 
-        # Step 2: Check for exact ID match in ResponseEntry table
-        exact_match_query = select(ResponseEntry).where(ResponseEntry.question_id == question.id)
+        # Step 2: Check for exact ID match in ResponseEntry table (vendor-specific)
+        exact_match_query = select(ResponseEntry).where(
+            ResponseEntry.vendor_id == vendor_id,
+            ResponseEntry.question_id == str(question.id)
+        )
         exact_match = session.exec(exact_match_query).first()
 
         if exact_match:
@@ -389,11 +408,13 @@ async def process_questionnaire(
             ))
             continue  # Move to next question
 
-        # Step 3: Run AI Search using embeddings
+        # Step 3: Run AI Search using embeddings (vendor-specific)
         embedding = await get_embedding(question.text)
 
-        # Fetch all responses and calculate similarities in Python (MySQL doesn't have vector ops)
-        all_responses = session.exec(select(ResponseEntry)).all()
+        # Fetch vendor's responses and calculate similarities in Python (MySQL doesn't have vector ops)
+        all_responses = session.exec(
+            select(ResponseEntry).where(ResponseEntry.vendor_id == vendor_id)
+        ).all()
 
         if not all_responses:
             # No responses in database
@@ -417,6 +438,7 @@ async def process_questionnaire(
         if similarity_score > 0.92:
             # HIGH CONFIDENCE: Auto-link and return LINKED
             auto_link = QuestionLink(
+                vendor_id=vendor_id,
                 new_question_id=question.id,
                 linked_response_id=top_match.id
             )
@@ -496,11 +518,15 @@ async def batch_process_questionnaire(
     results = []
     questions_needing_ai_search = []
     question_index_map = {}  # Maps question index to position in batch
+    vendor_id = questionnaire.vendor_id
 
     # Phase 1: Process Steps 1 & 2 for all questions
     for idx, question in enumerate(questionnaire.questions):
-        # Step 1: Check for saved link in QuestionLink table
-        link_query = select(QuestionLink).where(QuestionLink.new_question_id == question.id)
+        # Step 1: Check for saved link in QuestionLink table (vendor-specific)
+        link_query = select(QuestionLink).where(
+            QuestionLink.vendor_id == vendor_id,
+            QuestionLink.new_question_id == question.id
+        )
         existing_link = session.exec(link_query).first()
 
         if existing_link:
@@ -519,8 +545,11 @@ async def batch_process_questionnaire(
                 ))
                 continue  # Move to next question
 
-        # Step 2: Check for exact ID match in ResponseEntry table
-        exact_match_query = select(ResponseEntry).where(ResponseEntry.question_id == question.id)
+        # Step 2: Check for exact ID match in ResponseEntry table (vendor-specific)
+        exact_match_query = select(ResponseEntry).where(
+            ResponseEntry.vendor_id == vendor_id,
+            ResponseEntry.question_id == str(question.id)
+        )
         exact_match = session.exec(exact_match_query).first()
 
         if exact_match:
@@ -555,8 +584,10 @@ async def batch_process_questionnaire(
             embedding = embeddings[idx]
 
             # Step 3: Calculate similarities in Python (MySQL doesn't have vector ops)
-            # Fetch all responses and calculate similarities
-            all_responses = session.exec(select(ResponseEntry)).all()
+            # Fetch vendor's responses and calculate similarities
+            all_responses = session.exec(
+                select(ResponseEntry).where(ResponseEntry.vendor_id == vendor_id)
+            ).all()
 
             if not all_responses:
                 # No responses in database
@@ -641,6 +672,7 @@ async def list_links(session: Session = Depends(get_session)):
 
 @app.post("/create-response")
 async def create_response(
+    vendor_id: str,
     question_id: str,
     question_text: str,
     answer_text: str,
@@ -648,10 +680,11 @@ async def create_response(
     session: Session = Depends(get_session)
 ):
     """
-    Create a new response entry.
+    Create a new response entry for a specific vendor.
 
     Args:
-        question_id: Unique identifier for the question
+        vendor_id: Vendor identifier
+        question_id: Unique identifier for the question (within vendor)
         question_text: The question text
         answer_text: The answer text
         evidence: Optional evidence/citation
@@ -665,6 +698,7 @@ async def create_response(
 
     # Create new response entry
     new_response = ResponseEntry(
+        vendor_id=vendor_id,
         question_id=question_id,
         question_text=question_text,
         answer_text=answer_text,
@@ -732,6 +766,8 @@ async def batch_create_responses(
     if not input_data.responses:
         raise HTTPException(status_code=400, detail="No responses provided")
 
+    vendor_id = input_data.vendor_id
+
     # Check for duplicate question_ids in the batch
     question_ids = [resp.question_id for resp in input_data.responses]
     if len(question_ids) != len(set(question_ids)):
@@ -740,15 +776,16 @@ async def batch_create_responses(
             detail="Duplicate question_ids found in batch"
         )
 
-    # Check for existing question_ids in database
+    # Check for existing question_ids in database (for this vendor)
     existing_query = select(ResponseEntry.question_id).where(
+        ResponseEntry.vendor_id == vendor_id,
         ResponseEntry.question_id.in_(question_ids)
     )
     existing_ids = session.exec(existing_query).all()
     if existing_ids:
         raise HTTPException(
             status_code=400,
-            detail=f"Question IDs already exist: {', '.join(existing_ids)}"
+            detail=f"Question IDs already exist for vendor {vendor_id}: {', '.join(existing_ids)}"
         )
 
     # Step 1: Extract all question texts for batch embedding
@@ -765,6 +802,7 @@ async def batch_create_responses(
     created_responses = []
     for idx, response_input in enumerate(input_data.responses):
         new_response = ResponseEntry(
+            vendor_id=vendor_id,
             question_id=response_input.question_id,
             question_text=response_input.question_text,
             answer_text=response_input.answer_text,

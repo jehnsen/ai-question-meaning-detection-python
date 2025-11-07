@@ -16,3 +16,7 @@ Target fintech/compliance companies (your domain fits!)
 Certifications (optional boost):
 AWS Certified Solutions Architect
 Google Cloud Professional
+
+
+1. Vendors has their own auto-respond answers (existing), 
+   meaning Q&As are stored per vendor

@@ -1,0 +1,23 @@
+{
+  "vendor_id": "VENDOR-002",
+  "responses": [
+    {
+      "question_id": "V2-CLOUD-001",
+      "question_text": "What cloud platforms do you support?",
+      "answer_text": "We support AWS, Azure, and Google Cloud Platform. Our multi-cloud architecture allows you to deploy on any of these platforms or use a hybrid approach combining multiple cloud providers.",
+      "evidence": "Cloud Infrastructure Spec v2.0"
+    },
+    {
+      "question_id": "V2-API-001",
+      "question_text": "What API rate limits do you have?",
+      "answer_text": "Our standard tier includes 1000 requests per minute per API key. Enterprise customers can request custom rate limits based on their needs. Rate limit headers are included in all API responses.",
+      "evidence": "API Documentation Section 3.2"
+    },
+    {
+      "question_id": "V2-SLA-001",
+      "question_text": "What is your uptime SLA?",
+      "answer_text": "We guarantee 99.9% uptime for our production systems, measured monthly. This includes scheduled maintenance windows. Enterprise customers can opt for our 99.99% SLA tier with premium support.",
+      "evidence": "Service Level Agreement 2024"
+    }
+  ]
+}
