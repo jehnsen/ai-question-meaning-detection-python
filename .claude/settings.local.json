@@ -13,7 +13,8 @@
       "Bash(./venv/Scripts/pip list:*)",
       "Bash(findstr:*)",
       "Bash(cat:*)",
-      "Bash(dir /b:*)"
+      "Bash(dir /b:*)",
+      "Bash(timeout /t 5 /nobreak)"
     ],
     "deny": [],
     "ask": []
