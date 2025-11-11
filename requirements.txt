@@ -1,8 +1,24 @@
+# Core API Framework
 fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
+
+# Database - MySQL (Current)
 sqlalchemy>=2.0.0
 sqlmodel>=0.0.14
+pymysql>=1.1.0
+
+# Database - PostgreSQL (Legacy, can be removed)
 psycopg2-binary>=2.9.0
 pgvector>=0.2.0
+
+# Database - Neo4j (Optional, for graph operations)
+neo4j>=5.15.0
+
+# AI/ML
 openai>=1.0.0
+numpy>=1.24.0
+
+# Configuration
 python-dotenv>=1.0.0
+
+neo4j>=5.15.0

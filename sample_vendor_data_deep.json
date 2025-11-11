@@ -1,0 +1,115 @@
+{
+  "description": "Comprehensive vendor network demonstrating deep supply chain relationships (up to 15 degrees)",
+  "vendors": [
+    {"vendor_id": "CLIENT-001", "vendor_name": "SkyBlackBox Client Corp", "description": "Main client company", "industry": "Technology", "country": "USA"},
+
+    {"vendor_id": "VENDOR-1-1", "vendor_name": "Direct Vendor A", "description": "1st degree vendor", "industry": "Technology", "country": "USA"},
+    {"vendor_id": "VENDOR-1-2", "vendor_name": "Direct Vendor B", "description": "1st degree vendor", "industry": "Manufacturing", "country": "China"},
+
+    {"vendor_id": "VENDOR-2-1", "vendor_name": "2nd Party Vendor A", "description": "2nd degree vendor", "industry": "Components", "country": "Taiwan"},
+    {"vendor_id": "VENDOR-2-2", "vendor_name": "2nd Party Vendor B", "description": "2nd degree vendor", "industry": "Logistics", "country": "Singapore"},
+    {"vendor_id": "VENDOR-2-3", "vendor_name": "2nd Party Vendor C", "description": "2nd degree vendor", "industry": "Materials", "country": "Japan"},
+
+    {"vendor_id": "VENDOR-3-1", "vendor_name": "3rd Party Vendor A", "description": "3rd degree vendor", "industry": "Raw Materials", "country": "Australia"},
+    {"vendor_id": "VENDOR-3-2", "vendor_name": "3rd Party Vendor B", "description": "3rd degree vendor", "industry": "Chemicals", "country": "India"},
+    {"vendor_id": "VENDOR-3-3", "vendor_name": "3rd Party Vendor C", "description": "3rd degree vendor", "industry": "Packaging", "country": "Vietnam"},
+
+    {"vendor_id": "VENDOR-4-1", "vendor_name": "4th Party Vendor A", "description": "4th degree vendor", "industry": "Mining", "country": "Brazil"},
+    {"vendor_id": "VENDOR-4-2", "vendor_name": "4th Party Vendor B", "description": "4th degree vendor", "industry": "Petrochemicals", "country": "Saudi Arabia"},
+    {"vendor_id": "VENDOR-4-3", "vendor_name": "4th Party Vendor C", "description": "4th degree vendor", "industry": "Forestry", "country": "Canada"},
+
+    {"vendor_id": "VENDOR-5-1", "vendor_name": "5th Party Vendor A", "description": "5th degree vendor", "industry": "Equipment", "country": "Germany"},
+    {"vendor_id": "VENDOR-5-2", "vendor_name": "5th Party Vendor B", "description": "5th degree vendor", "industry": "Energy", "country": "Norway"},
+    {"vendor_id": "VENDOR-5-3", "vendor_name": "5th Party Vendor C", "description": "5th degree vendor", "industry": "Transportation", "country": "Netherlands"},
+
+    {"vendor_id": "VENDOR-6-1", "vendor_name": "6th Party Vendor A", "description": "6th degree vendor", "industry": "Machinery", "country": "Italy"},
+    {"vendor_id": "VENDOR-6-2", "vendor_name": "6th Party Vendor B", "description": "6th degree vendor", "industry": "Parts", "country": "South Korea"},
+    {"vendor_id": "VENDOR-6-3", "vendor_name": "6th Party Vendor C", "description": "6th degree vendor", "industry": "Tools", "country": "Switzerland"},
+
+    {"vendor_id": "VENDOR-7-1", "vendor_name": "7th Party Vendor A", "description": "7th degree vendor", "industry": "Steel", "country": "Poland"},
+    {"vendor_id": "VENDOR-7-2", "vendor_name": "7th Party Vendor B", "description": "7th degree vendor", "industry": "Electronics", "country": "Thailand"},
+    {"vendor_id": "VENDOR-7-3", "vendor_name": "7th Party Vendor C", "description": "7th degree vendor", "industry": "Plastics", "country": "Malaysia"},
+
+    {"vendor_id": "VENDOR-8-1", "vendor_name": "8th Party Vendor A", "description": "8th degree vendor", "industry": "Metals", "country": "Chile"},
+    {"vendor_id": "VENDOR-8-2", "vendor_name": "8th Party Vendor B", "description": "8th degree vendor", "industry": "Semiconductors", "country": "Philippines"},
+    {"vendor_id": "VENDOR-8-3", "vendor_name": "8th Party Vendor C", "description": "8th degree vendor", "industry": "Polymers", "country": "Indonesia"},
+
+    {"vendor_id": "VENDOR-9-1", "vendor_name": "9th Party Vendor A", "description": "9th degree vendor", "industry": "Ore", "country": "Peru"},
+    {"vendor_id": "VENDOR-9-2", "vendor_name": "9th Party Vendor B", "description": "9th degree vendor", "industry": "Silicon", "country": "Mexico"},
+    {"vendor_id": "VENDOR-9-3", "vendor_name": "9th Party Vendor C", "description": "9th degree vendor", "industry": "Resins", "country": "Turkey"},
+
+    {"vendor_id": "VENDOR-10-1", "vendor_name": "10th Party Vendor A", "description": "10th degree vendor", "industry": "Mining Equipment", "country": "South Africa"},
+    {"vendor_id": "VENDOR-10-2", "vendor_name": "10th Party Vendor B", "description": "10th degree vendor", "industry": "Wafer Production", "country": "Israel"},
+    {"vendor_id": "VENDOR-10-3", "vendor_name": "10th Party Vendor C", "description": "10th degree vendor", "industry": "Chemical Production", "country": "UAE"},
+
+    {"vendor_id": "VENDOR-11-1", "vendor_name": "11th Party Vendor A", "description": "11th degree vendor", "industry": "Heavy Machinery", "country": "Russia"},
+    {"vendor_id": "VENDOR-11-2", "vendor_name": "11th Party Vendor B", "description": "11th degree vendor", "industry": "Gas Supply", "country": "Qatar"},
+
+    {"vendor_id": "VENDOR-12-1", "vendor_name": "12th Party Vendor A", "description": "12th degree vendor", "industry": "Industrial Parts", "country": "Czech Republic"},
+    {"vendor_id": "VENDOR-12-2", "vendor_name": "12th Party Vendor B", "description": "12th degree vendor", "industry": "LNG", "country": "Algeria"},
+
+    {"vendor_id": "VENDOR-13-1", "vendor_name": "13th Party Vendor A", "description": "13th degree vendor", "industry": "Precision Tools", "country": "Austria"},
+    {"vendor_id": "VENDOR-13-2", "vendor_name": "13th Party Vendor B", "description": "13th degree vendor", "industry": "Natural Gas", "country": "Kazakhstan"},
+
+    {"vendor_id": "VENDOR-14-1", "vendor_name": "14th Party Vendor A", "description": "14th degree vendor", "industry": "Tool Manufacturing", "country": "Sweden"},
+    {"vendor_id": "VENDOR-14-2", "vendor_name": "14th Party Vendor B", "description": "14th degree vendor", "industry": "Gas Extraction", "country": "Uzbekistan"},
+
+    {"vendor_id": "VENDOR-15-1", "vendor_name": "15th Party Vendor A", "description": "15th degree vendor - Deep supply chain risk", "industry": "Raw Tool Materials", "country": "Finland"},
+    {"vendor_id": "VENDOR-15-2", "vendor_name": "15th Party Vendor B", "description": "15th degree vendor - Deep supply chain risk", "industry": "Drilling Equipment", "country": "Azerbaijan"}
+  ],
+  "relationships": [
+    {"source_vendor_id": "CLIENT-001", "target_vendor_id": "VENDOR-1-1", "relationship_type": "supplier", "strength": 0.95, "verified": true, "description": "Direct supplier"},
+    {"source_vendor_id": "CLIENT-001", "target_vendor_id": "VENDOR-1-2", "relationship_type": "supplier", "strength": 0.92, "verified": true, "description": "Direct manufacturer"},
+
+    {"source_vendor_id": "VENDOR-1-1", "target_vendor_id": "VENDOR-2-1", "relationship_type": "supplier", "strength": 0.90, "verified": true, "description": "Component supplier"},
+    {"source_vendor_id": "VENDOR-1-1", "target_vendor_id": "VENDOR-2-2", "relationship_type": "partner", "strength": 0.88, "verified": true, "description": "Logistics partner"},
+    {"source_vendor_id": "VENDOR-1-2", "target_vendor_id": "VENDOR-2-3", "relationship_type": "supplier", "strength": 0.85, "verified": true, "description": "Materials supplier"},
+
+    {"source_vendor_id": "VENDOR-2-1", "target_vendor_id": "VENDOR-3-1", "relationship_type": "supplier", "strength": 0.82, "verified": true, "description": "Raw materials"},
+    {"source_vendor_id": "VENDOR-2-2", "target_vendor_id": "VENDOR-3-2", "relationship_type": "supplier", "strength": 0.80, "verified": true, "description": "Chemical supplier"},
+    {"source_vendor_id": "VENDOR-2-3", "target_vendor_id": "VENDOR-3-3", "relationship_type": "supplier", "strength": 0.78, "verified": true, "description": "Packaging"},
+
+    {"source_vendor_id": "VENDOR-3-1", "target_vendor_id": "VENDOR-4-1", "relationship_type": "supplier", "strength": 0.75, "verified": true, "description": "Mining operations"},
+    {"source_vendor_id": "VENDOR-3-2", "target_vendor_id": "VENDOR-4-2", "relationship_type": "supplier", "strength": 0.73, "verified": true, "description": "Petrochemicals"},
+    {"source_vendor_id": "VENDOR-3-3", "target_vendor_id": "VENDOR-4-3", "relationship_type": "supplier", "strength": 0.70, "verified": false, "description": "Forestry products"},
+
+    {"source_vendor_id": "VENDOR-4-1", "target_vendor_id": "VENDOR-5-1", "relationship_type": "supplier", "strength": 0.68, "verified": true, "description": "Mining equipment"},
+    {"source_vendor_id": "VENDOR-4-2", "target_vendor_id": "VENDOR-5-2", "relationship_type": "supplier", "strength": 0.65, "verified": true, "description": "Energy supplier"},
+    {"source_vendor_id": "VENDOR-4-3", "target_vendor_id": "VENDOR-5-3", "relationship_type": "supplier", "strength": 0.62, "verified": false, "description": "Transportation"},
+
+    {"source_vendor_id": "VENDOR-5-1", "target_vendor_id": "VENDOR-6-1", "relationship_type": "supplier", "strength": 0.60, "verified": true, "description": "Machinery parts"},
+    {"source_vendor_id": "VENDOR-5-2", "target_vendor_id": "VENDOR-6-2", "relationship_type": "supplier", "strength": 0.58, "verified": false, "description": "Equipment parts"},
+    {"source_vendor_id": "VENDOR-5-3", "target_vendor_id": "VENDOR-6-3", "relationship_type": "supplier", "strength": 0.55, "verified": false, "description": "Tools"},
+
+    {"source_vendor_id": "VENDOR-6-1", "target_vendor_id": "VENDOR-7-1", "relationship_type": "supplier", "strength": 0.52, "verified": true, "description": "Steel supplier"},
+    {"source_vendor_id": "VENDOR-6-2", "target_vendor_id": "VENDOR-7-2", "relationship_type": "supplier", "strength": 0.50, "verified": false, "description": "Electronics"},
+    {"source_vendor_id": "VENDOR-6-3", "target_vendor_id": "VENDOR-7-3", "relationship_type": "supplier", "strength": 0.48, "verified": false, "description": "Plastics"},
+
+    {"source_vendor_id": "VENDOR-7-1", "target_vendor_id": "VENDOR-8-1", "relationship_type": "supplier", "strength": 0.45, "verified": false, "description": "Metal alloys"},
+    {"source_vendor_id": "VENDOR-7-2", "target_vendor_id": "VENDOR-8-2", "relationship_type": "supplier", "strength": 0.42, "verified": false, "description": "Semiconductors"},
+    {"source_vendor_id": "VENDOR-7-3", "target_vendor_id": "VENDOR-8-3", "relationship_type": "supplier", "strength": 0.40, "verified": false, "description": "Polymer supply"},
+
+    {"source_vendor_id": "VENDOR-8-1", "target_vendor_id": "VENDOR-9-1", "relationship_type": "supplier", "strength": 0.38, "verified": false, "description": "Ore supplier"},
+    {"source_vendor_id": "VENDOR-8-2", "target_vendor_id": "VENDOR-9-2", "relationship_type": "supplier", "strength": 0.35, "verified": false, "description": "Silicon"},
+    {"source_vendor_id": "VENDOR-8-3", "target_vendor_id": "VENDOR-9-3", "relationship_type": "supplier", "strength": 0.32, "verified": false, "description": "Resin supply"},
+
+    {"source_vendor_id": "VENDOR-9-1", "target_vendor_id": "VENDOR-10-1", "relationship_type": "supplier", "strength": 0.30, "verified": false, "description": "Mining equipment"},
+    {"source_vendor_id": "VENDOR-9-2", "target_vendor_id": "VENDOR-10-2", "relationship_type": "supplier", "strength": 0.28, "verified": false, "description": "Wafer production"},
+    {"source_vendor_id": "VENDOR-9-3", "target_vendor_id": "VENDOR-10-3", "relationship_type": "supplier", "strength": 0.25, "verified": false, "description": "Chemical production"},
+
+    {"source_vendor_id": "VENDOR-10-1", "target_vendor_id": "VENDOR-11-1", "relationship_type": "supplier", "strength": 0.22, "verified": false, "description": "Heavy machinery"},
+    {"source_vendor_id": "VENDOR-10-2", "target_vendor_id": "VENDOR-11-2", "relationship_type": "supplier", "strength": 0.20, "verified": false, "description": "Gas supply"},
+
+    {"source_vendor_id": "VENDOR-11-1", "target_vendor_id": "VENDOR-12-1", "relationship_type": "supplier", "strength": 0.18, "verified": false, "description": "Industrial parts"},
+    {"source_vendor_id": "VENDOR-11-2", "target_vendor_id": "VENDOR-12-2", "relationship_type": "supplier", "strength": 0.15, "verified": false, "description": "LNG supply"},
+
+    {"source_vendor_id": "VENDOR-12-1", "target_vendor_id": "VENDOR-13-1", "relationship_type": "supplier", "strength": 0.13, "verified": false, "description": "Precision tools"},
+    {"source_vendor_id": "VENDOR-12-2", "target_vendor_id": "VENDOR-13-2", "relationship_type": "supplier", "strength": 0.12, "verified": false, "description": "Natural gas"},
+
+    {"source_vendor_id": "VENDOR-13-1", "target_vendor_id": "VENDOR-14-1", "relationship_type": "supplier", "strength": 0.10, "verified": false, "description": "Tool manufacturing"},
+    {"source_vendor_id": "VENDOR-13-2", "target_vendor_id": "VENDOR-14-2", "relationship_type": "supplier", "strength": 0.08, "verified": false, "description": "Gas extraction"},
+
+    {"source_vendor_id": "VENDOR-14-1", "target_vendor_id": "VENDOR-15-1", "relationship_type": "supplier", "strength": 0.05, "verified": false, "description": "Raw tool materials"},
+    {"source_vendor_id": "VENDOR-14-2", "target_vendor_id": "VENDOR-15-2", "relationship_type": "supplier", "strength": 0.03, "verified": false, "description": "Drilling equipment"}
+  ]
+}

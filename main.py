@@ -1,6 +1,9 @@
 """
-Effortless-Respond API
-A FastAPI application for finding saved answers to new questions using AI-driven semantic search.
+AI Integration Service API
+A comprehensive FastAPI application for AI-powered services:
+- Question matching using semantic search
+- Vendor relationship graph analysis (3-7 degree connections)
+- AI-powered vendor matching and discovery
 
 This refactored version uses a clean modular architecture:
 - app/models: Database models
@@ -11,7 +14,14 @@ This refactored version uses a clean modular architecture:
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.services import init_db, init_openai_client
-from app.api import questionnaire_router, responses_router, admin_router
+from app.api import questionnaire_router, responses_router, admin_router, vendors_router, risk_router
+
+# Neo4j imports (optional)
+try:
+    from app.services.neo4j_service import init_neo4j, close_neo4j, is_neo4j_available
+    NEO4J_IMPORTS_OK = True
+except ImportError:
+    NEO4J_IMPORTS_OK = False
 
 
 @asynccontextmanager
@@ -23,19 +33,40 @@ async def lifespan(app: FastAPI):
     print("Starting application...")
     init_db()
     init_openai_client()
+
+    # Try to initialize Neo4j (optional - graceful fallback to MySQL)
+    if NEO4J_IMPORTS_OK:
+        try:
+            init_neo4j()
+            if is_neo4j_available():
+                print("✅ Neo4j connected - Using graph database for vendor relationships")
+            else:
+                print("⚠️  Neo4j unavailable - Using MySQL for vendor relationships")
+        except Exception as e:
+            print(f"⚠️  Neo4j initialization failed: {e}")
+            print("   Continuing with MySQL fallback")
+    else:
+        print("ℹ️  Neo4j driver not installed - Using MySQL for vendor relationships")
+        print("   Install with: pip install neo4j")
+
     print("Application ready!")
 
     yield
 
     # Shutdown
     print("Shutting down application...")
+    if NEO4J_IMPORTS_OK:
+        try:
+            close_neo4j()
+        except:
+            pass
 
 
 # Create FastAPI application
 app = FastAPI(
-    title="Effortless-Respond API",
-    description="Multi-tenant question matching using AI-driven semantic search (OpenAI)",
-    version="4.0.0",
+    title="AI Integration Service API",
+    description="Multi-tenant AI services: Question matching, Vendor relationship graph, AI-powered discovery",
+    version="5.0.0",
     lifespan=lifespan
 )
 
@@ -44,6 +75,8 @@ app = FastAPI(
 app.include_router(questionnaire_router)
 app.include_router(responses_router)
 app.include_router(admin_router)
+app.include_router(vendors_router)
+app.include_router(risk_router)
 
 
 @app.get("/")
@@ -52,16 +85,22 @@ async def root():
     Root endpoint with API information.
     """
     return {
-        "message": "Welcome to Effortless-Respond API v4.0",
+        "message": "Welcome to AI Integration Service API v5.0",
         "docs": "/docs",
-        "version": "4.0.0",
+        "version": "5.0.0",
         "architecture": "modular",
         "ai_provider": "OpenAI",
         "embedding_model": "text-embedding-3-small",
+        "services": [
+            "question_matching",
+            "vendor_relationship_graph",
+            "vendor_ai_matching",
+            "multi_tenant_support"
+        ],
         "features": [
-            "multi_tenant",
             "batch_processing",
-            "4_step_logic",
+            "graph_traversal_3_to_7_degrees",
+            "semantic_search",
             "auto_linking",
             "retry_logic"
         ]
@@ -73,7 +112,7 @@ async def health_check():
     """
     Health check endpoint.
     """
-    return {"status": "healthy", "version": "4.0.0"}
+    return {"status": "healthy", "version": "5.0.0"}
 
 
 # For backward compatibility, add the old endpoint paths
