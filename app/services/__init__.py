@@ -6,6 +6,7 @@ from .embedding import init_openai_client, get_embedding, get_batch_embeddings, 
 from .question_processor import QuestionProcessor
 from .vendor_graph import VendorGraphService
 from .vendor_matcher import VendorMatcherService
+from .graph_rag_service import GraphRAGService
 
 __all__ = [
     "get_session",
@@ -17,4 +18,5 @@ __all__ = [
     "QuestionProcessor",
     "VendorGraphService",
     "VendorMatcherService",
+    "GraphRAGService",
 ]

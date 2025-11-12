@@ -77,12 +77,21 @@ class Neo4jLoader:
             return result.single()
 
     def create_relationship(self, rel_data):
-        """Create a relationship between two vendors."""
+        """Create a relationship between two vendors.
+
+        Note: The relationship direction represents dependency:
+        (source)-[DEPENDS_ON]->(target) means "source depends on target"
+
+        For "supplier" relationships:
+        - source_vendor_id = client (depends on supplier)
+        - target_vendor_id = supplier (provides to client)
+        """
         with self.driver.session() as session:
+            # Use DEPENDS_ON for clarity (source depends on target)
             query = """
             MATCH (source:Vendor {vendor_id: $source_vendor_id})
             MATCH (target:Vendor {vendor_id: $target_vendor_id})
-            MERGE (source)-[r:SUPPLIES {
+            MERGE (source)-[r:DEPENDS_ON {
                 relationship_type: $relationship_type,
                 strength: $strength,
                 description: $description,
@@ -105,7 +114,7 @@ class Neo4jLoader:
         """Test deep graph search (10-15 degrees)."""
         with self.driver.session() as session:
             query = f"""
-            MATCH path = (source:Vendor {{vendor_id: $vendor_id}})-[r:SUPPLIES*1..{max_depth}]->(target:Vendor)
+            MATCH path = (source:Vendor {{vendor_id: $vendor_id}})-[r:DEPENDS_ON*1..{max_depth}]->(target:Vendor)
             WITH path,
                  length(path) as depth,
                  reduce(s = 1.0, rel in relationships(path) | s * rel.strength) as total_strength,
@@ -127,11 +136,11 @@ class Neo4jLoader:
             vendor_count = session.run("MATCH (v:Vendor) RETURN count(v) as count").single()['count']
 
             # Count relationships
-            rel_count = session.run("MATCH ()-[r:SUPPLIES]->() RETURN count(r) as count").single()['count']
+            rel_count = session.run("MATCH ()-[r:DEPENDS_ON]->() RETURN count(r) as count").single()['count']
 
             # Get max depth
             max_depth_result = session.run("""
-                MATCH path = (source:Vendor)-[r:SUPPLIES*]->(target:Vendor)
+                MATCH path = (source:Vendor)-[r:DEPENDS_ON*]->(target:Vendor)
                 RETURN max(length(path)) as max_depth
             """).single()
             max_depth = max_depth_result['max_depth'] if max_depth_result else 0
@@ -277,8 +286,10 @@ def load_sample_data(data_file="sample_vendor_data.json"):
         print("   1. Open Neo4j Browser: http://localhost:7474")
         print("   2. Login: neo4j / password123")
         print("   3. Run Cypher query:")
-        print("      MATCH (v:Vendor)-[r:SUPPLIES*1..10]->(target)")
+        print("      MATCH (v:Vendor)-[r:DEPENDS_ON*1..10]->(target)")
         print("      RETURN v, r, target LIMIT 100")
+        print("\n   Note: Relationship direction: (Client)-[:DEPENDS_ON]->(Supplier)")
+        print("         This means the arrow points FROM client TO their dependencies")
         print("\n   4. Start API server and test risk endpoints:")
         print("      python -m uvicorn main:app --reload")
         print()

@@ -14,7 +14,7 @@ This refactored version uses a clean modular architecture:
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.services import init_db, init_openai_client
-from app.api import questionnaire_router, responses_router, admin_router, vendors_router, risk_router
+from app.api import questionnaire_router, responses_router, admin_router, vendors_router, risk_router, graph_rag_router
 
 # Neo4j imports (optional)
 try:
@@ -77,6 +77,7 @@ app.include_router(responses_router)
 app.include_router(admin_router)
 app.include_router(vendors_router)
 app.include_router(risk_router)
+app.include_router(graph_rag_router)
 
 
 @app.get("/")
