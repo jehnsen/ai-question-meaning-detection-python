@@ -14,7 +14,12 @@
       "Bash(findstr:*)",
       "Bash(cat:*)",
       "Bash(dir /b:*)",
-      "Bash(timeout /t 5 /nobreak)"
+      "Bash(timeout /t 5 /nobreak)",
+      "Bash(python -m py_compile:*)",
+      "Bash(python3:*)",
+      "Bash(python migrate_to_provider_id.py:*)",
+      "Bash(source venv/bin/activate)",
+      "Bash(python run_migration.py:*)"
     ],
     "deny": [],
     "ask": []

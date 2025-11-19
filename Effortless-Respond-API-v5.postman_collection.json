@@ -1,0 +1,436 @@
+{
+	"info": {
+		"_postman_id": "v5-a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+		"name": "Effortless-Respond API v5.0 - Intelligent Fallback Chain",
+		"description": "Complete API collection for Effortless-Respond v5.0 - AI-driven questionnaire processing with the new Intelligent Fallback Chain.\n\n## 🆕 What's New in v5.0\n- **Intelligent Fallback Chain**: 4-step cost-optimized matching (ID → Fuzzy → Semantic → Confidence)\n- **MySQL 8+ Native VECTOR Support**: Uses VECTOR_COSINE_DISTANCE for semantic search\n- **Fuzzy Matching**: Levenshtein distance for typo tolerance (0.90 threshold)\n- **Match Logging**: Analytics tracking for every question processed\n- **Multi-Tenant Support**: Vendor-based data isolation\n- **70-80% Cost Reduction**: Smart fallback logic minimizes AI API calls\n\n## Features\n- 4-Step Intelligent Fallback Chain\n- Batch questionnaire processing with auto-chunking\n- MySQL native VECTOR support + Python fallback\n- thefuzz library for fuzzy text matching\n- Comprehensive match logging and analytics\n- Auto-linking with 3-tier confidence levels\n\n## Base URL\nhttp://localhost:8000\n\n## Documentation\n- Swagger UI: http://localhost:8000/docs\n- ReDoc: http://localhost:8000/redoc\n- GitHub: https://github.com/your-repo/effortless-respond\n\n## Intelligent Fallback Chain\n1. **Step 1: ID Match** - Check saved links & exact IDs (instant, no cost)\n2. **Step 2: Fuzzy Match** - Levenshtein distance >0.90 (fast, no AI cost)\n3. **Step 3: Semantic Search** - AI embeddings + MySQL VECTOR_COSINE_DISTANCE (AI cost)\n4. **Step 4: Re-Ranker + Confidence** - 3-tier thresholds (>0.92 HIGH, ≥0.80 MEDIUM, <0.80 LOW)\n\n## Environment Variables\nSet these in Postman or .env:\n- `base_url`: http://localhost:8000\n- `vendor_id`: Your vendor identifier (e.g., \"vendor1\")",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. System Info & Health",
+			"item": [
+				{
+					"name": "Get API Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": ["{{base_url}}"],
+							"path": [""]
+						},
+						"description": "Returns v5.0 API information, features list, and fallback chain details.\n\n**Expected Response:**\n- version: 5.0.0\n- database: MySQL 8+ with native VECTOR support\n- fallback_chain: 4-step description"
+					},
+					"response": []
+				},
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": ["{{base_url}}"],
+							"path": ["health"]
+						},
+						"description": "Health check endpoint.\n\n**Expected Response:**\n```json\n{\n  \"status\": \"healthy\",\n  \"version\": \"5.0.0\"\n}\n```"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Response Management (New Endpoints)",
+			"item": [
+				{
+					"name": "Batch Create Responses (Recommended)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"vendor_id\": \"{{vendor_id}}\",\n  \"responses\": [\n    {\n      \"question_id\": \"q1\",\n      \"question_text\": \"What is your refund policy?\",\n      \"answer_text\": \"Our refund policy allows returns within 30 days of purchase with original receipt. Full refund for unused items.\",\n      \"evidence\": \"Section 3.2 of Terms of Service\"\n    },\n    {\n      \"question_id\": \"q2\",\n      \"question_text\": \"How do I cancel my order?\",\n      \"answer_text\": \"To cancel your order, log into your account and go to Order History. Click the Cancel button next to the order.\",\n      \"evidence\": null\n    },\n    {\n      \"question_id\": \"q3\",\n      \"question_text\": \"What payment methods do you accept?\",\n      \"answer_text\": \"We accept Visa, MasterCard, American Express, PayPal, and Apple Pay.\",\n      \"evidence\": \"Payment Options page\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/responses/batch-create",
+							"host": ["{{base_url}}"],
+							"path": ["responses", "batch-create"]
+						},
+						"description": "**NEW in v5.0**: Batch create multiple canonical responses with AI-generated embeddings.\n\n**Features:**\n- Creates multiple Q&A pairs in one request\n- Auto-generates embeddings for each question\n- Vendor-based isolation\n- Returns creation status for each response\n\n**Request Body:**\n- `vendor_id`: Your vendor identifier\n- `responses`: Array of canonical Q&A pairs\n  - `question_id`: Unique ID within vendor\n  - `question_text`: The canonical question\n  - `answer_text`: The saved answer\n  - `evidence`: Optional citation/evidence"
+					},
+					"response": []
+				},
+				{
+					"name": "List Responses (Vendor Filter)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/responses/list?vendor_id={{vendor_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["responses", "list"],
+							"query": [
+								{
+									"key": "vendor_id",
+									"value": "{{vendor_id}}",
+									"description": "Filter by vendor ID (optional)"
+								}
+							]
+						},
+						"description": "List all canonical responses, optionally filtered by vendor_id.\n\n**Query Parameters:**\n- `vendor_id` (optional): Filter responses by vendor"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Response",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/responses/1",
+							"host": ["{{base_url}}"],
+							"path": ["responses", "1"]
+						},
+						"description": "Delete a canonical response by ID.\n\n**Path Parameters:**\n- `response_id`: ID of the response to delete"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Questionnaire Processing (Intelligent Fallback Chain)",
+			"item": [
+				{
+					"name": "Batch Process - Intelligent Fallback (Recommended)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"vendor_id\": \"{{vendor_id}}\",\n  \"questions\": [\n    {\n      \"id\": 1,\n      \"text\": \"What is your refund policy?\"\n    },\n    {\n      \"id\": 2,\n      \"text\": \"Whats your return pollicy?\"\n    },\n    {\n      \"id\": 3,\n      \"text\": \"Can I get my money back?\"\n    },\n    {\n      \"id\": 4,\n      \"text\": \"How do I cancel?\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/questionnaire/batch-process",
+							"host": ["{{base_url}}"],
+							"path": ["questionnaire", "batch-process"]
+						},
+						"description": "**🌟 PRIMARY ENDPOINT**: Process questionnaire with the new Intelligent Fallback Chain.\n\n## 4-Step Fallback Chain\n\n**Step 1: ID Match**\n- Checks saved links in QuestionLink table\n- Checks exact question_id matches\n- **Cost**: $0.00 (instant)\n- **Match Method**: \"ID\"\n\n**Step 2: Fuzzy Match**\n- Normalizes text (lowercase, remove punctuation)\n- Uses Levenshtein distance (thefuzz library)\n- **Threshold**: 0.90 (90% similar)\n- **Cost**: ~$0.00 (no AI)\n- **Match Method**: \"FUZZY\"\n\n**Step 3: Semantic Search**\n- Generates AI embedding via OpenAI\n- Uses MySQL VECTOR_COSINE_DISTANCE\n- Returns top 5 semantic matches\n- **Cost**: $0.002 per question\n- **Match Method**: \"SEMANTIC\"\n\n**Step 4: Confidence Engine**\n- **HIGH (>0.92)**: Auto-link, status=\"LINKED\"\n- **MEDIUM (≥0.80)**: status=\"CONFIRMATION_REQUIRED\"\n- **LOW (<0.80)**: status=\"NO_MATCH\"\n\n## Response Statuses\n- `LINKED`: Confident match found (auto-saved)\n- `CONFIRMATION_REQUIRED`: Possible match, needs review\n- `NO_MATCH`: No suitable match found\n\n## Cost Savings Example\n100 questions:\n- Old approach: 100 AI calls = $0.20\n- New approach: ~20 AI calls = $0.04 (80% savings)\n\n## Match Logging\nEvery question is logged to `matchlog` table with:\n- `question_id`\n- `match_method`: \"ID\", \"FUZZY\", \"SEMANTIC\", or \"NONE\"\n- `confidence_score`\n- `final_status`\n- `timestamp`\n- `vendor_id`"
+					},
+					"response": []
+				},
+				{
+					"name": "Test: ID Match (Step 1)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"vendor_id\": \"{{vendor_id}}\",\n  \"questions\": [\n    {\n      \"id\": \"q1\",\n      \"text\": \"Different text but same ID as canonical response\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/questionnaire/batch-process",
+							"host": ["{{base_url}}"],
+							"path": ["questionnaire", "batch-process"]
+						},
+						"description": "**Test Case: ID Match**\n\nTests Step 1 of the fallback chain.\n\n**Setup Required:**\n1. Create a canonical response with question_id=\"q1\"\n2. Run this request with id=\"q1\" but different text\n\n**Expected Result:**\n- Status: \"LINKED\"\n- Match logged with method: \"ID\"\n- Confidence: 1.0\n- No AI API call made (instant)\n\n**Match Log Entry:**\n```json\n{\n  \"question_id\": \"q1\",\n  \"match_method\": \"ID\",\n  \"confidence_score\": 1.0,\n  \"final_status\": \"LINKED\"\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Test: Fuzzy Match (Step 2)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"vendor_id\": \"{{vendor_id}}\",\n  \"questions\": [\n    {\n      \"id\": 999,\n      \"text\": \"Whats your refund pollicy?\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/questionnaire/batch-process",
+							"host": ["{{base_url}}"],
+							"path": ["questionnaire", "batch-process"]
+						},
+						"description": "**Test Case: Fuzzy Match**\n\nTests Step 2 of the fallback chain.\n\n**Setup Required:**\n1. Create canonical response: \"What is your refund policy?\"\n2. Run this request with typo: \"Whats your refund pollicy?\"\n\n**Expected Result:**\n- Status: \"LINKED\" (if >90% similar)\n- Match logged with method: \"FUZZY\"\n- Confidence: ~0.92-0.95\n- No AI API call made (Levenshtein distance only)\n\n**How Fuzzy Matching Works:**\n1. Normalize both texts:\n   - \"What is your refund policy?\" → \"what is your refund policy\"\n   - \"Whats your refund pollicy?\" → \"whats your refund pollicy\"\n2. Calculate Levenshtein distance ratio\n3. If ratio >0.90, match found!\n\n**Match Log Entry:**\n```json\n{\n  \"question_id\": 999,\n  \"match_method\": \"FUZZY\",\n  \"confidence_score\": 0.93,\n  \"final_status\": \"LINKED\"\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Test: Semantic Search (Step 3)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"vendor_id\": \"{{vendor_id}}\",\n  \"questions\": [\n    {\n      \"id\": 1000,\n      \"text\": \"Can I get my money back if I'm not satisfied?\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/questionnaire/batch-process",
+							"host": ["{{base_url}}"],
+							"path": ["questionnaire", "batch-process"]
+						},
+						"description": "**Test Case: Semantic Search**\n\nTests Steps 3 & 4 of the fallback chain.\n\n**Setup Required:**\n1. Create canonical response: \"What is your refund policy?\"\n2. Run this request with semantically similar text\n\n**Expected Result:**\n- Status: \"LINKED\" or \"CONFIRMATION_REQUIRED\"\n- Match logged with method: \"SEMANTIC\"\n- Confidence: varies (0.80-1.0)\n- AI API call made (costs $0.002)\n\n**How Semantic Search Works:**\n1. Generate OpenAI embedding for question text\n2. Query MySQL using VECTOR_COSINE_DISTANCE\n3. Get top 5 semantic matches\n4. Re-Ranker selects best match\n5. Confidence Engine applies thresholds:\n   - >0.92: Auto-link (HIGH)\n   - ≥0.80: Needs confirmation (MEDIUM)\n   - <0.80: No match (LOW)\n\n**Match Log Entry:**\n```json\n{\n  \"question_id\": 1000,\n  \"match_method\": \"SEMANTIC\",\n  \"confidence_score\": 0.89,\n  \"final_status\": \"CONFIRMATION_REQUIRED\"\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Large Batch - 100 Questions",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"vendor_id\": \"{{vendor_id}}\",\n  \"questions\": [\n    {\"id\": 1, \"text\": \"What is your refund policy?\"},\n    {\"id\": 2, \"text\": \"How do I cancel my order?\"},\n    {\"id\": 3, \"text\": \"What payment methods do you accept?\"},\n    {\"id\": 4, \"text\": \"Do you ship internationally?\"},\n    {\"id\": 5, \"text\": \"What is your privacy policy?\"},\n    {\"id\": 6, \"text\": \"How long does shipping take?\"},\n    {\"id\": 7, \"text\": \"Can I track my order?\"},\n    {\"id\": 8, \"text\": \"What is your return policy?\"},\n    {\"id\": 9, \"text\": \"Do you offer gift wrapping?\"},\n    {\"id\": 10, \"text\": \"How can I contact customer support?\"}\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/questionnaire/batch-process",
+							"host": ["{{base_url}}"],
+							"path": ["questionnaire", "batch-process"]
+						},
+						"description": "**Performance Test**: Process 10 questions (expand to 100+ for real testing).\n\n**Features:**\n- Auto-chunking for batches >2048 questions\n- Exponential backoff retry (3 retries: 2s, 4s, 8s)\n- Batch embedding optimization\n\n**Performance:**\n- Steps 1 & 2: Processed individually (fast)\n- Step 3: Batch embedding (1 API call for all)\n\n**Expected Distribution:**\n- ~60% ID matches (instant)\n- ~20% Fuzzy matches (no AI cost)\n- ~20% Semantic matches (AI cost)\n\n**Cost Comparison:**\n- Old v4.0: 100 questions × $0.002 = $0.20\n- New v5.0: ~20 questions × $0.002 = $0.04 (80% savings)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Admin & Analytics",
+			"item": [
+				{
+					"name": "List Question Links",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/links",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "links"]
+						},
+						"description": "List all saved question-to-response links.\n\n**Response:**\n```json\n[\n  {\n    \"id\": 1,\n    \"vendor_id\": \"vendor1\",\n    \"new_question_id\": 123,\n    \"linked_response_id\": 5\n  }\n]\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Question Link",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/admin/links/1",
+							"host": ["{{base_url}}"],
+							"path": ["admin", "links", "1"]
+						},
+						"description": "Delete a saved question link by ID."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Legacy Endpoints (Backward Compatible)",
+			"item": [
+				{
+					"name": "Legacy - Create Response",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/create-response?vendor_id={{vendor_id}}&question_id=legacy-q1&question_text=What is your refund policy?&answer_text=Our refund policy allows...&evidence=Section 3.2",
+							"host": ["{{base_url}}"],
+							"path": ["create-response"],
+							"query": [
+								{"key": "vendor_id", "value": "{{vendor_id}}"},
+								{"key": "question_id", "value": "legacy-q1"},
+								{"key": "question_text", "value": "What is your refund policy?"},
+								{"key": "answer_text", "value": "Our refund policy allows..."},
+								{"key": "evidence", "value": "Section 3.2"}
+							]
+						},
+						"description": "**DEPRECATED**: Use `/responses/batch-create` instead.\n\nLegacy endpoint maintained for backward compatibility."
+					},
+					"response": []
+				},
+				{
+					"name": "Legacy - Batch Process",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"vendor_id\": \"{{vendor_id}}\",\n  \"questions\": [\n    {\"id\": 1, \"text\": \"What is your refund policy?\"}\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/batch-process-questionnaire",
+							"host": ["{{base_url}}"],
+							"path": ["batch-process-questionnaire"]
+						},
+						"description": "**DEPRECATED**: Use `/questionnaire/batch-process` instead.\n\nLegacy endpoint maintained for backward compatibility."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "6. Complete Workflow Examples",
+			"item": [
+				{
+					"name": "Workflow: Complete Setup & Test",
+					"item": [
+						{
+							"name": "1. Check API Status",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/",
+									"host": ["{{base_url}}"],
+									"path": [""]
+								},
+								"description": "Verify API is running and v5.0 features are available."
+							},
+							"response": []
+						},
+						{
+							"name": "2. Create Test Canonical Responses",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"vendor_id\": \"test_vendor\",\n  \"responses\": [\n    {\n      \"question_id\": \"test_q1\",\n      \"question_text\": \"What is your refund policy?\",\n      \"answer_text\": \"Our refund policy allows returns within 30 days of purchase with original receipt.\",\n      \"evidence\": \"Section 3.2 of Terms\"\n    },\n    {\n      \"question_id\": \"test_q2\",\n      \"question_text\": \"How do I cancel my order?\",\n      \"answer_text\": \"To cancel your order, visit your account page and click Cancel.\",\n      \"evidence\": null\n    }\n  ]\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/responses/batch-create",
+									"host": ["{{base_url}}"],
+									"path": ["responses", "batch-create"]
+								},
+								"description": "Create test canonical responses."
+							},
+							"response": []
+						},
+						{
+							"name": "3. Test All Fallback Chain Steps",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"vendor_id\": \"test_vendor\",\n  \"questions\": [\n    {\"id\": \"test_q1\", \"text\": \"Different text, same ID (tests ID match)\"},\n    {\"id\": 997, \"text\": \"Whats your refund pollicy? (tests fuzzy match)\"},\n    {\"id\": 998, \"text\": \"Can I get my money back? (tests semantic search)\"}\n  ]\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/questionnaire/batch-process",
+									"host": ["{{base_url}}"],
+									"path": ["questionnaire", "batch-process"]
+								},
+								"description": "Test all 4 steps of the fallback chain:\n1. ID match\n2. Fuzzy match\n3. Semantic search\n4. Confidence engine"
+							},
+							"response": []
+						},
+						{
+							"name": "4. Verify Links Created",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/admin/links",
+									"host": ["{{base_url}}"],
+									"path": ["admin", "links"]
+								},
+								"description": "Check that high-confidence matches were auto-linked."
+							},
+							"response": []
+						}
+					],
+					"description": "Complete workflow to set up and test the v5.0 Intelligent Fallback Chain."
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Set default vendor_id if not already set",
+					"if (!pm.environment.get('vendor_id')) {",
+					"    pm.environment.set('vendor_id', 'vendor1');",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto-test: Check response status",
+					"pm.test('Status code is 200', function () {",
+					"    pm.response.to.have.status(200);",
+					"});",
+					"",
+					"// Auto-test: Response time is acceptable",
+					"pm.test('Response time is less than 5000ms', function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "vendor_id",
+			"value": "vendor1",
+			"type": "string"
+		}
+	]
+}

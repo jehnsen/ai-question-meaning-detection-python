@@ -3,6 +3,7 @@ Pydantic schemas for canonical response creation.
 """
 from typing import Optional
 from pydantic import BaseModel
+from .answer import Answer
 
 
 class CanonicalResponseInput(BaseModel):
@@ -10,14 +11,14 @@ class CanonicalResponseInput(BaseModel):
     Input for a single canonical response.
 
     Attributes:
-        question_id: Unique identifier for the question (within vendor)
+        question_id: Unique identifier for the question (within client-vendor pair)
         question_text: The question text
-        answer_text: The answer text
+        answer: Answer object containing type, text, and optional comment
         evidence: Optional evidence/citation
     """
     question_id: str
     question_text: str
-    answer_text: str
+    answer: Answer
     evidence: Optional[str] = None
 
 
@@ -26,10 +27,12 @@ class BatchCreateInput(BaseModel):
     Input model for batch creating canonical responses.
 
     Attributes:
-        vendor_id: Which vendor owns these responses
+        client_id: Client identifier
+        provider_id: Provider/vendor identifier
         responses: List of canonical responses to create
     """
-    vendor_id: str
+    client_id: str
+    provider_id: str
     responses: list[CanonicalResponseInput]
 
 

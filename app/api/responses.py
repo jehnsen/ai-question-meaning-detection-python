@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from app.models import ResponseEntry
-from app.schemas import BatchCreateInput, BatchCreateOutput, BatchCreateResponse
+from app.schemas import BatchCreateInput, BatchCreateOutput, BatchCreateResponse, Answer
 from app.services import get_session, get_embedding, get_batch_embeddings
 
 router = APIRouter(prefix="/responses", tags=["responses"])
@@ -13,21 +13,23 @@ router = APIRouter(prefix="/responses", tags=["responses"])
 
 @router.post("/create")
 async def create_response(
-    vendor_id: str,
+    client_id: str,
+    provider_id: str,
     question_id: str,
     question_text: str,
-    answer_text: str,
+    answer: Answer,
     evidence: Optional[str] = None,
     session: Session = Depends(get_session)
 ):
     """
-    Create a single response entry for a specific vendor.
+    Create a single response entry for a specific provider.
 
     Args:
-        vendor_id: Vendor identifier
-        question_id: Unique identifier for the question (within vendor)
+        client_id: Client identifier (not used in data model, kept for API compatibility)
+        provider_id: Provider/vendor identifier
+        question_id: Unique identifier for the question (within provider)
         question_text: The question text
-        answer_text: The answer text
+        answer: Answer object containing type, text, and optional comment
         evidence: Optional evidence/citation
         session: Database session
 
@@ -37,10 +39,10 @@ async def create_response(
     embedding = await get_embedding(question_text)
 
     new_response = ResponseEntry(
-        vendor_id=vendor_id,
+        provider_id=provider_id,
         question_id=question_id,
         question_text=question_text,
-        answer_text=answer_text,
+        answer=answer.model_dump(),
         evidence=evidence,
         embedding=embedding
     )
@@ -72,7 +74,7 @@ async def batch_create_responses(
     - 2000 responses: ~10-15 seconds (auto-chunked into batches)
 
     Args:
-        input_data: Batch input containing vendor_id and list of canonical responses
+        input_data: Batch input containing client_id, provider_id and list of canonical responses
         session: Database session
 
     Returns:
@@ -86,7 +88,7 @@ async def batch_create_responses(
     if not input_data.responses:
         raise HTTPException(status_code=400, detail="No responses provided")
 
-    vendor_id = input_data.vendor_id
+    provider_id = input_data.provider_id
 
     # Check for duplicate question_ids in the batch
     question_ids = [resp.question_id for resp in input_data.responses]
@@ -98,14 +100,14 @@ async def batch_create_responses(
 
     # Check for existing question_ids in database
     existing_query = select(ResponseEntry.question_id).where(
-        ResponseEntry.vendor_id == vendor_id,
+        ResponseEntry.provider_id == provider_id,
         ResponseEntry.question_id.in_(question_ids)
     )
     existing_ids = session.exec(existing_query).all()
     if existing_ids:
         raise HTTPException(
             status_code=400,
-            detail=f"Question IDs already exist for vendor {vendor_id}: {', '.join(existing_ids)}"
+            detail=f"Question IDs already exist for provider {provider_id}: {', '.join(existing_ids)}"
         )
 
     # Extract all question texts for batch embedding
@@ -118,10 +120,10 @@ async def batch_create_responses(
     created_responses = []
     for idx, response_input in enumerate(input_data.responses):
         new_response = ResponseEntry(
-            vendor_id=vendor_id,
+            provider_id=provider_id,
             question_id=response_input.question_id,
             question_text=response_input.question_text,
-            answer_text=response_input.answer_text,
+            answer=response_input.answer.model_dump(),
             evidence=response_input.evidence,
             embedding=embeddings[idx]
         )
@@ -144,22 +146,26 @@ async def batch_create_responses(
 
 @router.get("/list")
 async def list_responses(
-    vendor_id: Optional[str] = None,
+    client_id: Optional[str] = None,
+    provider_id: Optional[str] = None,
     session: Session = Depends(get_session)
 ):
     """
     List all response entries.
 
     Args:
-        vendor_id: Optional vendor filter
+        client_id: Optional client filter (not used, kept for API compatibility)
+        provider_id: Optional provider filter
         session: Database session
 
     Returns:
         List of ResponseEntry objects
     """
     query = select(ResponseEntry)
-    if vendor_id:
-        query = query.where(ResponseEntry.vendor_id == vendor_id)
+
+    # Filter by provider_id if provided
+    if provider_id:
+        query = query.where(ResponseEntry.provider_id == provider_id)
 
     results = session.exec(query).all()
     return results

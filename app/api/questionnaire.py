@@ -22,13 +22,13 @@ async def process_questionnaire(
     Use /batch-process for better performance with large questionnaires.
 
     Args:
-        questionnaire: Input containing vendor_id and list of questions
+        questionnaire: Input containing client_id, provider_id and list of questions
         session: Database session
 
     Returns:
         QuestionnaireOutput with results for each question
     """
-    processor = QuestionProcessor(session, questionnaire.vendor_id)
+    processor = QuestionProcessor(session, questionnaire.client_id, questionnaire.provider_id)
     results = []
 
     for question in questionnaire.questions:
@@ -57,7 +57,7 @@ async def batch_process_questionnaire(
     - 3000 questions: 2 API calls instead of 3000 calls
 
     Args:
-        questionnaire: Input containing vendor_id and list of questions
+        questionnaire: Input containing client_id, provider_id and list of questions
         session: Database session
 
     Returns:
@@ -67,7 +67,7 @@ async def batch_process_questionnaire(
         RateLimitError: If rate limit persists after 3 retries
         APIError: If OpenAI API error occurs
     """
-    processor = QuestionProcessor(session, questionnaire.vendor_id)
+    processor = QuestionProcessor(session, questionnaire.client_id, questionnaire.provider_id)
     results = await processor.process_batch_questions(questionnaire.questions)
 
     return QuestionnaireOutput(results=results)

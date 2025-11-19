@@ -1,9 +1,17 @@
 """
-Effortless-Respond API
-A FastAPI application for finding saved answers to new questions using AI-driven semantic search.
+Effortless-Respond API v5.0 - Intelligent Fallback Chain
+A FastAPI application for finding saved answers to new questions using the new 4-step Intelligent Fallback Chain.
 
-This refactored version uses a clean modular architecture:
-- app/models: Database models
+New in v5.0:
+- Migrated from PostgreSQL/pgvector to MySQL 8+ with native VECTOR support
+- Implemented Intelligent Fallback Chain: ID Match → Fuzzy Match → Semantic Search → Confidence Engine
+- Added thefuzz library for Levenshtein distance fuzzy matching
+- Integrated MySQL VECTOR_COSINE_DISTANCE for semantic search
+- Added MatchLog table for analytics tracking
+- Enhanced batch processing with cost-optimized fallback logic
+
+Architecture:
+- app/models: Database models (SQLModel + MySQL)
 - app/schemas: Pydantic schemas for API requests/responses
 - app/services: Business logic and utilities
 - app/api: API route handlers
@@ -33,9 +41,9 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI application
 app = FastAPI(
-    title="Effortless-Respond API",
-    description="Multi-tenant question matching using AI-driven semantic search (OpenAI)",
-    version="4.0.0",
+    title="Effortless-Respond API v5.0 - Intelligent Fallback Chain",
+    description="Multi-tenant question matching using 4-step Intelligent Fallback Chain with MySQL 8+ VECTOR support",
+    version="5.0.0",
     lifespan=lifespan
 )
 
@@ -52,18 +60,30 @@ async def root():
     Root endpoint with API information.
     """
     return {
-        "message": "Welcome to Effortless-Respond API v4.0",
+        "message": "Welcome to Effortless-Respond API v5.0 - Intelligent Fallback Chain",
         "docs": "/docs",
-        "version": "4.0.0",
+        "version": "5.0.0",
         "architecture": "modular",
+        "database": "MySQL 8+ with native VECTOR support",
         "ai_provider": "OpenAI",
         "embedding_model": "text-embedding-3-small",
         "features": [
             "multi_tenant",
+            "intelligent_fallback_chain",
+            "id_match",
+            "fuzzy_match_levenshtein",
+            "semantic_search_mysql_vector",
+            "reranker_confidence_engine",
             "batch_processing",
-            "4_step_logic",
             "auto_linking",
+            "match_logging",
             "retry_logic"
+        ],
+        "fallback_chain": [
+            "Step 1: ID Match (saved links + exact ID)",
+            "Step 2: Fuzzy Match (Levenshtein distance, threshold 0.90)",
+            "Step 3: Semantic Search (AI embeddings via MySQL VECTOR_COSINE_DISTANCE)",
+            "Step 4: Re-Ranker + Confidence Engine (thresholds: >0.92 HIGH, >=0.80 MEDIUM, <0.80 LOW)"
         ]
     }
 
@@ -73,7 +93,7 @@ async def health_check():
     """
     Health check endpoint.
     """
-    return {"status": "healthy", "version": "4.0.0"}
+    return {"status": "healthy", "version": "5.0.0"}
 
 
 # For backward compatibility, add the old endpoint paths
